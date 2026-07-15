@@ -32,7 +32,16 @@
     if (toTop) toTop.classList.toggle('show', y > 700);
     if (actionBar) actionBar.classList.toggle('show', y > 400);
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
+  // rAF-throttled scroll handler — at most one layout pass per frame
+  var scrollTicking = false;
+  window.addEventListener('scroll', function () {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function () {
+      onScroll();
+      scrollTicking = false;
+    });
+  }, { passive: true });
   onScroll();
 
   if (toTop) toTop.addEventListener('click', function () {

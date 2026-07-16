@@ -16,7 +16,9 @@
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="apple-touch-icon" href="assets/img/logo.png" />
 
-  <link rel="preload" as="image" href="assets/img/guard-portrait.webp" type="image/webp" />
+  <!-- Art-directed hero preload — each device fetches only its crop -->
+  <link rel="preload" as="image" href="assets/img/hero-cinematic-mobile.webp" type="image/webp" media="(max-width:768px)" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/img/hero-cinematic.webp" type="image/webp" media="(min-width:769px)" fetchpriority="high" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,15 +27,6 @@
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-  <!-- Page loader -->
-  <div class="loader" id="loader" aria-hidden="true">
-    <div class="loader__crest">
-      <img src="assets/img/logo.png" alt="" width="72" height="72" decoding="async" />
-      <span class="loader__ring"></span>
-    </div>
-    <span class="loader__label">SECUMAX&nbsp;SECURITY</span>
-  </div>
-
   <!-- Scroll progress -->
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
@@ -99,10 +92,14 @@
     <!-- ============ HERO ============ -->
     <section class="hero" id="home">
       <div class="hero__bg" aria-hidden="true">
-        <div class="hero__photo"></div>
+        <picture>
+          <source media="(max-width:768px)" srcset="assets/img/hero-cinematic-mobile.webp" type="image/webp" />
+          <source srcset="assets/img/hero-cinematic.webp" type="image/webp" />
+          <img class="hero__img" src="assets/img/hero-cinematic.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async" />
+        </picture>
         <div class="hero__grid"></div>
         <div class="hero__scan"></div>
-        <div class="hero__vignette"></div>
+        <div class="hero__scrim"></div>
       </div>
 
       <div class="wrap hero__inner">
@@ -110,27 +107,30 @@
           <span class="dot"></span> BEE Compliant &middot; Operating 24/7 across South Africa
         </p>
         <h1 class="hero__title">
-          <span class="reveal" style="--d:.05s">Elite security,</span>
-          <span class="reveal grad" style="--d:.15s">engineered for peace of mind.</span>
+          <span class="hero__line"><span class="hero__line-in" style="--d:.15s">Elite security,</span></span>
+          <span class="hero__line"><span class="hero__line-in grad" style="--d:.32s">engineered for peace of mind.</span></span>
         </h1>
-        <p class="hero__lead reveal" style="--d:.25s">
+        <p class="hero__lead reveal" style="--d:.55s">
           By implementing the latest technology and consistent skills development, we deliver
           industry-leading, tailor-made security solutions — protecting your interests and assets,
           whether at work or at home.
         </p>
-        <div class="hero__actions reveal" style="--d:.35s">
+        <div class="hero__actions reveal" style="--d:.65s">
           <a class="btn btn--gold btn--lg" href="#services">
             Explore services
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
           <a class="btn btn--outline btn--lg" href="#contact">Request a quote</a>
         </div>
+      </div>
 
-        <div class="hero__badges reveal" style="--d:.45s">
-          <div class="hbadge"><strong>24/7</strong><span>Rapid response</span></div>
-          <div class="hbadge"><strong>K9</strong><span>Units available</span></div>
-          <div class="hbadge"><strong>AI</strong><span>CCTV monitoring</span></div>
-          <div class="hbadge"><strong>5&#9733;</strong><span>Client rated</span></div>
+      <!-- slim trust strip pinned to the hero base -->
+      <div class="hero__trust">
+        <div class="wrap hero__trust-inner">
+          <div class="trust__item"><strong>24/7</strong><span>Rapid response</span></div>
+          <div class="trust__item"><strong>K9</strong><span>Units</span></div>
+          <div class="trust__item"><strong>AI</strong><span>CCTV</span></div>
+          <div class="trust__item"><strong>5&#9733;</strong><span>Client rated</span></div>
         </div>
       </div>
 
@@ -164,7 +164,7 @@
     <!-- ============ ABOUT ============ -->
     <section class="about section" id="about">
       <div class="wrap about__grid">
-        <div class="about__media reveal">
+        <div class="about__media reveal-left">
           <div class="about__frame">
             <picture>
               <source srcset="assets/img/team-wide.webp" type="image/webp" />
@@ -306,71 +306,95 @@
           <p class="section__sub reveal">From executive close protection to anti-poaching operations — a dedicated unit for every threat profile.</p>
         </div>
 
-        <div class="divisions">
-          <!-- Executive & Travel Protection -->
-          <article class="division reveal" style="--d:0s">
-            <header class="division__head">
-              <span class="division__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 2.6v5.2c0 4.6-3.2 7.9-7 10.2-3.8-2.3-7-5.6-7-10.2V5.6L12 3z"/><path d="M9 12.2l2.1 2.1 3.9-4.6"/></svg>
-              </span>
-              <h3 class="division__title">Executive &amp; Travel Protection</h3>
-            </header>
-            <span class="division__rule" aria-hidden="true"></span>
-            <ul class="division__list">
-              <li><span class="division__num" aria-hidden="true">01</span> Executive Close Protection</li>
-              <li><span class="division__num" aria-hidden="true">02</span> Executive Secure Driving</li>
-              <li><span class="division__num" aria-hidden="true">03</span> Airport Transfers</li>
-              <li><span class="division__num" aria-hidden="true">04</span> Special Events Security</li>
-            </ul>
+        <div class="chapters">
+          <!-- Chapter 01 — Executive & Travel Protection (media left) -->
+          <article class="chapter">
+            <div class="chapter__media reveal-left">
+              <div class="chapter__frame">
+                <div class="chapter__pll" data-parallax>
+                  <img src="assets/img/div-executive.webp" alt="Close protection officer escorting a principal to a hardened executive vehicle" width="1200" height="800" loading="lazy" decoding="async" />
+                </div>
+                <span class="chapter__tag">UNIT 01 &middot; EXECUTIVE</span>
+              </div>
+            </div>
+            <div class="chapter__body reveal">
+              <span class="chapter__no" aria-hidden="true">01</span>
+              <h3 class="chapter__title">Executive &amp; Travel Protection</h3>
+              <p class="chapter__mission">Movement without exposure — discreet officers, secured routes and hardened vehicles keep principals safe from door to door.</p>
+              <ul class="chapter__list">
+                <li style="--r:0"><span class="chapter__num" aria-hidden="true">01</span> Executive Close Protection</li>
+                <li style="--r:1"><span class="chapter__num" aria-hidden="true">02</span> Executive Secure Driving</li>
+                <li style="--r:2"><span class="chapter__num" aria-hidden="true">03</span> Airport Transfers</li>
+                <li style="--r:3"><span class="chapter__num" aria-hidden="true">04</span> Special Events Security</li>
+              </ul>
+            </div>
           </article>
 
-          <!-- Mining & High-Value Assets -->
-          <article class="division reveal" style="--d:.08s">
-            <header class="division__head">
-              <span class="division__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4h11L21 9l-9 11L3 9l3.5-5z"/><path d="M3 9h18M9.5 4L8 9l4 11M14.5 4L16 9l-4 11"/></svg>
-              </span>
-              <h3 class="division__title">Mining &amp; High-Value Assets</h3>
-            </header>
-            <span class="division__rule" aria-hidden="true"></span>
-            <ul class="division__list">
-              <li><span class="division__num" aria-hidden="true">05</span> Mining Security</li>
-              <li><span class="division__num" aria-hidden="true">06</span> Bullion Protection</li>
-              <li><span class="division__num" aria-hidden="true">07</span> Illegal Mining Prevention</li>
-              <li><span class="division__num" aria-hidden="true">08</span> Asset Protection / Convoy Protection &amp; Auditing</li>
-            </ul>
+          <!-- Chapter 02 — Mining & High-Value Assets (media right) -->
+          <article class="chapter chapter--rev">
+            <div class="chapter__media reveal-right">
+              <div class="chapter__frame">
+                <div class="chapter__pll" data-parallax>
+                  <img src="assets/img/div-mining.webp" alt="Secured bullion transit under armed guard at a mining operation" width="1200" height="800" loading="lazy" decoding="async" />
+                </div>
+                <span class="chapter__tag">UNIT 02 &middot; MINING</span>
+              </div>
+            </div>
+            <div class="chapter__body reveal">
+              <span class="chapter__no" aria-hidden="true">02</span>
+              <h3 class="chapter__title">Mining &amp; High-Value Assets</h3>
+              <p class="chapter__mission">Protecting extraction, transit and audit of high-value material — sealed convoys, controlled sites and accountability at every checkpoint.</p>
+              <ul class="chapter__list">
+                <li style="--r:0"><span class="chapter__num" aria-hidden="true">05</span> Mining Security</li>
+                <li style="--r:1"><span class="chapter__num" aria-hidden="true">06</span> Bullion Protection</li>
+                <li style="--r:2"><span class="chapter__num" aria-hidden="true">07</span> Illegal Mining Prevention</li>
+                <li style="--r:3"><span class="chapter__num" aria-hidden="true">08</span> Asset Protection / Convoy Protection &amp; Auditing</li>
+              </ul>
+            </div>
           </article>
 
-          <!-- Tactical Response -->
-          <article class="division reveal" style="--d:.16s">
-            <header class="division__head">
-              <span class="division__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l5.5-5.5"/><circle cx="12" cy="12" r="1"/></svg>
-              </span>
-              <h3 class="division__title">Tactical Response</h3>
-            </header>
-            <span class="division__rule" aria-hidden="true"></span>
-            <ul class="division__list">
-              <li><span class="division__num" aria-hidden="true">09</span> Quick Response Force</li>
-              <li><span class="division__num" aria-hidden="true">10</span> Riot / Protest / Civil Unrest Control</li>
-              <li><span class="division__num" aria-hidden="true">11</span> Anti-Poaching Unit</li>
-              <li><span class="division__num" aria-hidden="true">12</span> Kidnapping for Ransom Recovery Unit</li>
-            </ul>
+          <!-- Chapter 03 — Tactical Response (media left) -->
+          <article class="chapter">
+            <div class="chapter__media reveal-left">
+              <div class="chapter__frame">
+                <div class="chapter__pll" data-parallax>
+                  <img src="assets/img/div-tactical.webp" alt="Tactical K9 unit deploying at speed during a response operation" width="1200" height="800" loading="lazy" decoding="async" />
+                </div>
+                <span class="chapter__tag">UNIT 03 &middot; TACTICAL</span>
+              </div>
+            </div>
+            <div class="chapter__body reveal">
+              <span class="chapter__no" aria-hidden="true">03</span>
+              <h3 class="chapter__title">Tactical Response</h3>
+              <p class="chapter__mission">Trained units that arrive first and take control — quick-reaction force, crowd control and specialist teams for the highest-risk situations.</p>
+              <ul class="chapter__list">
+                <li style="--r:0"><span class="chapter__num" aria-hidden="true">09</span> Quick Response Force</li>
+                <li style="--r:1"><span class="chapter__num" aria-hidden="true">10</span> Riot / Protest / Civil Unrest Control</li>
+                <li style="--r:2"><span class="chapter__num" aria-hidden="true">11</span> Anti-Poaching Unit</li>
+                <li style="--r:3"><span class="chapter__num" aria-hidden="true">12</span> Kidnapping for Ransom Recovery Unit</li>
+              </ul>
+            </div>
           </article>
 
-          <!-- Recovery & Intelligence -->
-          <article class="division reveal" style="--d:.24s">
-            <header class="division__head">
-              <span class="division__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.4-4.4M11 8v3l2 2"/></svg>
-              </span>
-              <h3 class="division__title">Recovery &amp; Intelligence</h3>
-            </header>
-            <span class="division__rule" aria-hidden="true"></span>
-            <ul class="division__list">
-              <li><span class="division__num" aria-hidden="true">13</span> Stolen Vehicle Recovery</li>
-              <li><span class="division__num" aria-hidden="true">14</span> Specialized &amp; Private Investigations</li>
-            </ul>
+          <!-- Chapter 04 — Recovery & Intelligence (media right) -->
+          <article class="chapter chapter--rev">
+            <div class="chapter__media reveal-right">
+              <div class="chapter__frame">
+                <div class="chapter__pll" data-parallax>
+                  <img src="assets/img/div-antipoach.webp" alt="Anti-poaching field team tracking through the African bush at dawn" width="1200" height="800" loading="lazy" decoding="async" />
+                </div>
+                <span class="chapter__tag">UNIT 04 &middot; RECOVERY</span>
+              </div>
+            </div>
+            <div class="chapter__body reveal">
+              <span class="chapter__no" aria-hidden="true">04</span>
+              <h3 class="chapter__title">Recovery &amp; Intelligence</h3>
+              <p class="chapter__mission">When something is taken, we bring it back — vehicle recovery and private investigation backed by disciplined, verifiable intelligence.</p>
+              <ul class="chapter__list">
+                <li style="--r:0"><span class="chapter__num" aria-hidden="true">13</span> Stolen Vehicle Recovery</li>
+                <li style="--r:1"><span class="chapter__num" aria-hidden="true">14</span> Specialized &amp; Private Investigations</li>
+              </ul>
+            </div>
           </article>
         </div>
 
@@ -405,7 +429,7 @@
           <a class="btn btn--gold reveal" href="#contact">Deploy Spot-Bot <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
 
-        <div class="spotbot__panel reveal">
+        <div class="spotbot__panel reveal-right">
           <div class="monitor">
             <div class="monitor__bar">
               <span class="monitor__dot"></span> LIVE · SPOT-BOT NODE 01
@@ -441,7 +465,7 @@
           <p class="eyebrow reveal">Client voices</p>
           <h2 class="section__title reveal">What our clients <span class="grad">say.</span></h2>
         </div>
-        <figure class="quote reveal">
+        <figure class="quote reveal-scale">
           <div class="quote__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
           <blockquote>
             &ldquo;SECUMAX SECURITY gave us peace of mind with their exceptional guarding services.&rdquo;

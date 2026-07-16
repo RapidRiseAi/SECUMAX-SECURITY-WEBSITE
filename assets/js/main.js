@@ -8,15 +8,6 @@
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
-  /* ---------- Loader ---------- */
-  window.addEventListener('load', function () {
-    var loader = $('#loader');
-    if (!loader) return;
-    setTimeout(function () { loader.classList.add('done'); }, reduceMotion ? 0 : 500);
-  });
-  // Failsafe so the loader never traps the page
-  setTimeout(function () { var l = $('#loader'); if (l) l.classList.add('done'); }, 2500);
-
   /* ---------- Header scroll state + progress + to-top + action bar ---------- */
   var header    = $('#siteHeader');
   var progress  = $('#scrollProgress');
@@ -32,6 +23,22 @@
     if (toTop) toTop.classList.toggle('show', y > 700);
     if (actionBar) actionBar.classList.toggle('show', y > 400);
   }
+
+  /* ---------- Scroll-linked parallax (transform-only, disabled under reduced motion) ---------- */
+  var parallaxEls = reduceMotion ? [] : $$('[data-parallax]');
+  function updateParallax() {
+    if (!parallaxEls.length) return;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    for (var i = 0; i < parallaxEls.length; i++) {
+      var el = parallaxEls[i];
+      var r = el.getBoundingClientRect();
+      if (r.bottom <= 0 || r.top >= vh) continue;           // skip off-screen
+      var prog = (vh - r.top) / (vh + r.height);             // 0 entering → 1 leaving
+      var yPct = (prog - 0.5) * 8;                           // -4% … 4%
+      el.style.transform = 'translate3d(0,' + yPct.toFixed(2) + '%,0)';
+    }
+  }
+
   // rAF-throttled scroll handler — at most one layout pass per frame
   var scrollTicking = false;
   window.addEventListener('scroll', function () {
@@ -39,10 +46,13 @@
     scrollTicking = true;
     requestAnimationFrame(function () {
       onScroll();
+      updateParallax();
       scrollTicking = false;
     });
   }, { passive: true });
+  window.addEventListener('resize', updateParallax, { passive: true });
   onScroll();
+  updateParallax();
 
   if (toTop) toTop.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -72,8 +82,8 @@
     if (e.key === 'Escape') setMenu(false);
   });
 
-  /* ---------- Scroll reveal ---------- */
-  var revealEls = $$('.reveal');
+  /* ---------- Scroll reveal (base .reveal + directional/scale variants) ---------- */
+  var revealEls = $$('[class*="reveal"]');
   if ('IntersectionObserver' in window && !reduceMotion) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {

@@ -172,12 +172,12 @@
       }
       // Compose a mailto so the message reaches the inbox without a backend.
       var subject = encodeURIComponent('Website enquiry from ' + name);
-      var body = encodeURIComponent(message + '\n\n— ' + name + ' (' + email + ')');
+      var body = encodeURIComponent(message + '\n\nFrom: ' + name + ' (' + email + ')');
       note.textContent = 'Opening your email app…';
       note.className = 'form__note ok';
       window.location.href = 'mailto:info@secumaxsecurity.co.za?subject=' + subject + '&body=' + body;
       setTimeout(function () {
-        note.textContent = 'Thank you — we will be in touch shortly.';
+        note.textContent = 'Thank you. We will be in touch shortly.';
         form.reset();
       }, 800);
     });

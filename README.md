@@ -13,9 +13,9 @@ accent, animated interactions, and genuinely separate mobile and desktop experie
     a 3D-tilting AI CCTV monitor, multi-column grids.
   - *Mobile:* full-screen slide-in drawer, a sticky **Call / WhatsApp / Quote** action bar,
     single-column layouts, tap-friendly targets.
-- **Animation** — page loader, scroll-progress bar, `IntersectionObserver` scroll reveals,
-  animated stat counters, hero pan/scan, capability marquee, and a live "Spot-Bot" AI
-  detection mockup. All motion respects `prefers-reduced-motion`.
+- **Animation** — scroll-progress bar, `IntersectionObserver` scroll reveals, animated stat
+  counters, a slow cinematic zoom on the hero imagery, capability marquee, and a live
+  "Spot-Bot" AI detection mockup. All motion respects `prefers-reduced-motion`.
 - **Accessible & fast** — semantic HTML, skip link, focus states, lazy-loaded images,
   no build step and no runtime dependencies.
 - **Real content** — all copy, services and contact details are taken from the existing

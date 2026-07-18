@@ -730,6 +730,12 @@ p{color:var(--muted)}
   .chapter__media.reveal-left .chapter__frame,
   .chapter__media.reveal-right .chapter__frame{clip-path:none}
   .chapter__body:not(.in) .chapter__list li{opacity:1}
+  .chapter__body:not(.in) .chapter__no{opacity:1;transform:none}
   .hero__img{transform:none}
+  .hero__bg-media{transform:none}
   .hero__line-in{transform:none}
+  /* new animations neutralised: no glint, no draw-in motion, ticks shown statically */
+  .card__icon::after{display:none}
+  .section__head .section__title::after{transform:translateX(-50%) scaleX(1)}
+  .stat__num::after{display:none}
 }

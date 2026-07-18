@@ -99,7 +99,7 @@
   function animateCount(el) {
     var target = parseFloat(el.getAttribute('data-count')) || 0;
     var suffix = el.getAttribute('data-suffix') || '';
-    if (reduceMotion) { el.textContent = target + suffix; return; }
+    if (reduceMotion) { el.textContent = target + suffix; el.classList.add('counted'); return; }
     var dur = 1400, start = null;
     function step(ts) {
       if (!start) start = ts;
@@ -107,7 +107,7 @@
       var eased = 1 - Math.pow(1 - p, 3);
       el.textContent = Math.round(target * eased) + (p === 1 ? suffix : '');
       if (p < 1) requestAnimationFrame(step);
-      else el.textContent = target + suffix;
+      else { el.textContent = target + suffix; el.classList.add('counted'); }
     }
     requestAnimationFrame(step);
   }

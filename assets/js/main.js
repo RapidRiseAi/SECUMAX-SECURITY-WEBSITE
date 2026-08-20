@@ -1,90 +1,77 @@
 /* =========================================================
-   SECUMAX SECURITY — interactions
+   INTEGRI Forensic and Protection Services — interactions
+   Vanilla JS, no dependencies. Shared by every page.
+   FROZEN FILE — see BRAND.md §5
    ========================================================= */
 (function () {
   'use strict';
 
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- Header scroll state + progress + to-top + action bar ---------- */
+  /* ---------- Header state, scroll progress, to-top, action bar ---------- */
   var header    = $('#siteHeader');
   var progress  = $('#scrollProgress');
   var toTop     = $('#toTop');
   var actionBar = $('.action-bar');
 
   function onScroll() {
-    var y = window.pageYOffset || document.documentElement.scrollTop;
-    var docH = document.documentElement.scrollHeight - window.innerHeight;
+    var y   = window.pageYOffset;
+    var max = document.documentElement.scrollHeight - window.innerHeight;
 
-    if (header) header.classList.toggle('scrolled', y > 24);
-    if (progress) progress.style.width = (docH > 0 ? (y / docH) * 100 : 0) + '%';
-    if (toTop) toTop.classList.toggle('show', y > 700);
-    if (actionBar) actionBar.classList.toggle('show', y > 400);
+    if (header) header.classList.toggle('scrolled', y > 20);
+    if (progress) progress.style.width = (max > 0 ? (y / max) * 100 : 0) + '%';
+    if (toTop) toTop.classList.toggle('show', y > 600);
+    if (actionBar) actionBar.classList.toggle('show', y > 240);
   }
 
-  /* ---------- Scroll-linked parallax (transform-only, disabled under reduced motion) ---------- */
-  var parallaxEls = reduceMotion ? [] : $$('[data-parallax]');
-  function updateParallax() {
-    if (!parallaxEls.length) return;
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    for (var i = 0; i < parallaxEls.length; i++) {
-      var el = parallaxEls[i];
-      var r = el.getBoundingClientRect();
-      if (r.bottom <= 0 || r.top >= vh) continue;           // skip off-screen
-      var prog = (vh - r.top) / (vh + r.height);             // 0 entering → 1 leaving
-      var yPct = (prog - 0.5) * 8;                           // -4% … 4%
-      el.style.transform = 'translate3d(0,' + yPct.toFixed(2) + '%,0)';
-    }
-  }
-
-  // rAF-throttled scroll handler — at most one layout pass per frame
-  var scrollTicking = false;
+  var ticking = false;
   window.addEventListener('scroll', function () {
-    if (scrollTicking) return;
-    scrollTicking = true;
-    requestAnimationFrame(function () {
-      onScroll();
-      updateParallax();
-      scrollTicking = false;
-    });
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { onScroll(); ticking = false; });
   }, { passive: true });
-  window.addEventListener('resize', updateParallax, { passive: true });
   onScroll();
-  updateParallax();
 
-  if (toTop) toTop.addEventListener('click', function () {
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-  });
+  if (toTop) {
+    toTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+    });
+  }
 
   /* ---------- Mobile drawer ---------- */
-  var hamburger = $('#hamburger');
+  var hamburger  = $('#hamburger');
   var mobileMenu = $('#mobileMenu');
 
   function setMenu(open) {
     if (!mobileMenu || !hamburger) return;
     mobileMenu.classList.toggle('open', open);
+    hamburger.classList.toggle('open', open);
     hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
     hamburger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     mobileMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
     document.body.style.overflow = open ? 'hidden' : '';
   }
-  if (hamburger) hamburger.addEventListener('click', function () {
-    setMenu(!mobileMenu.classList.contains('open'));
-  });
+
+  if (hamburger) {
+    hamburger.addEventListener('click', function () {
+      setMenu(!mobileMenu.classList.contains('open'));
+    });
+  }
   if (mobileMenu) {
+    // close on backdrop click or on any link tap
     mobileMenu.addEventListener('click', function (e) {
       if (e.target === mobileMenu || e.target.closest('a')) setMenu(false);
     });
   }
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') setMenu(false);
+    if (e.key === 'Escape' && mobileMenu && mobileMenu.classList.contains('open')) setMenu(false);
   });
 
-  /* ---------- Scroll reveal (base .reveal + directional/scale variants) ---------- */
-  var revealEls = $$('[class*="reveal"]');
-  if ('IntersectionObserver' in window && !reduceMotion) {
+  /* ---------- Scroll reveal ---------- */
+  var revealEls = $$('.reveal');
+  if ('IntersectionObserver' in window && !reduced) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
@@ -95,94 +82,99 @@
     revealEls.forEach(function (el) { el.classList.add('in'); });
   }
 
-  /* ---------- Animated counters ---------- */
+  /* ---------- Animated counters (data-count) ---------- */
   function animateCount(el) {
-    var target = parseFloat(el.getAttribute('data-count')) || 0;
-    var suffix = el.getAttribute('data-suffix') || '';
-    if (reduceMotion) { el.textContent = target + suffix; el.classList.add('counted'); return; }
-    var dur = 1400, start = null;
+    var target = parseFloat(el.getAttribute('data-count'));
+    if (isNaN(target)) return;
+    var suffix   = el.getAttribute('data-suffix') || '';
+    var duration = 1400;
+    var start    = null;
+
     function step(ts) {
-      if (!start) start = ts;
-      var p = Math.min((ts - start) / dur, 1);
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
       var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * eased) + (p === 1 ? suffix : '');
+      el.textContent = Math.round(target * eased) + suffix;
       if (p < 1) requestAnimationFrame(step);
-      else { el.textContent = target + suffix; el.classList.add('counted'); }
     }
     requestAnimationFrame(step);
   }
-  var counters = $$('.stat__num');
-  if ('IntersectionObserver' in window) {
-    var cio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { animateCount(en.target); cio.unobserve(en.target); }
+
+  var counters = $$('[data-count]');
+  if (counters.length) {
+    if ('IntersectionObserver' in window && !reduced) {
+      var cio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { animateCount(en.target); cio.unobserve(en.target); }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(function (c) { cio.observe(c); });
+    } else {
+      counters.forEach(function (c) {
+        c.textContent = c.getAttribute('data-count') + (c.getAttribute('data-suffix') || '');
       });
-    }, { threshold: 0.5 });
-    counters.forEach(function (c) { cio.observe(c); });
-  } else {
-    counters.forEach(animateCount);
+    }
   }
 
-  /* ---------- Active nav link on scroll ---------- */
-  var sections = $$('main section[id]');
-  var navLinks = $$('.nav-desktop a');
-  if ('IntersectionObserver' in window && navLinks.length) {
-    var sio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) {
-          var id = en.target.getAttribute('id');
-          navLinks.forEach(function (a) {
-            a.classList.toggle('active', a.getAttribute('href') === '#' + id);
-          });
-        }
-      });
-    }, { threshold: 0.4, rootMargin: '-30% 0px -55% 0px' });
-    sections.forEach(function (s) { sio.observe(s); });
-  }
-
-  /* ---------- Smooth anchor scrolling with header offset ---------- */
+  /* ---------- Smooth in-page anchors, offset for the fixed header ---------- */
   $$('a[href^="#"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
       var id = a.getAttribute('href');
-      if (id.length < 2) return;
-      var target = document.querySelector(id);
+      if (!id || id === '#' || id.length < 2) return;
+      var target = document.getElementById(id.slice(1));
       if (!target) return;
       e.preventDefault();
-      var h = header ? header.offsetHeight : 0;
-      var top = target.getBoundingClientRect().top + window.pageYOffset - h + 2;
-      window.scrollTo({ top: top, behavior: reduceMotion ? 'auto' : 'smooth' });
+      var offset = parseInt(getComputedStyle(document.documentElement)
+                    .getPropertyValue('--header-h'), 10) || 74;
+      var top = target.getBoundingClientRect().top + window.pageYOffset - offset - 12;
+      window.scrollTo({ top: top, behavior: reduced ? 'auto' : 'smooth' });
+      history.replaceState(null, '', id);
     });
   });
 
-  /* ---------- Contact form (front-end validation + mailto fallback) ---------- */
+  /* ---------- Contact form: validate, then hand off to the mail client ---------- */
   var form = $('#contactForm');
+  var note = $('#formNote');
+
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var note = $('#formNote');
-      var name = $('#name').value.trim();
-      var email = $('#email').value.trim();
-      var message = $('#message').value.trim();
-      var validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!note) return;
 
-      if (!name || !validEmail || !message) {
-        note.textContent = 'Please add your name, a valid email and a message.';
-        note.className = 'form__note err';
+      var name    = (form.name && form.name.value || '').trim();
+      var email   = (form.email && form.email.value || '').trim();
+      var service = (form.service && form.service.value || '').trim();
+      var message = (form.message && form.message.value || '').trim();
+
+      note.className = 'form__note';
+
+      if (!name || !email || !message) {
+        note.textContent = 'Please complete your name, email address and message.';
+        note.classList.add('err');
         return;
       }
-      // Compose a mailto so the message reaches the inbox without a backend.
-      var subject = encodeURIComponent('Website enquiry from ' + name);
-      var body = encodeURIComponent(message + '\n\nFrom: ' + name + ' (' + email + ')');
-      note.textContent = 'Opening your email app…';
-      note.className = 'form__note ok';
-      window.location.href = 'mailto:info@secumaxsecurity.co.za?subject=' + subject + '&body=' + body;
-      setTimeout(function () {
-        note.textContent = 'Thank you. We will be in touch shortly.';
-        form.reset();
-      }, 800);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        note.textContent = 'That email address does not look right — please check it.';
+        note.classList.add('err');
+        return;
+      }
+
+      var subject = 'Website enquiry' + (service ? ' — ' + service : '');
+      var body    = 'Name: ' + name +
+                    '\nEmail: ' + email +
+                    (service ? '\nService: ' + service : '') +
+                    '\n\n' + message;
+
+      window.location.href = 'mailto:ops@integriforensicandprotectionservices.com'
+        + '?subject=' + encodeURIComponent(subject)
+        + '&body='    + encodeURIComponent(body);
+
+      note.textContent = 'Opening your email app — if nothing happens, write to us directly at ops@integriforensicandprotectionservices.com';
+      note.classList.add('ok');
+      form.reset();
     });
   }
 
-  /* ---------- Year (footer safety, keeps copyright current) ---------- */
+  /* ---------- Current year in the footer ---------- */
   $$('[data-year]').forEach(function (el) { el.textContent = new Date().getFullYear(); });
 })();

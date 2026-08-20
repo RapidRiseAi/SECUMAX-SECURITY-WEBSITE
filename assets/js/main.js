@@ -141,10 +141,18 @@
       e.preventDefault();
       if (!note) return;
 
-      var name    = (form.name && form.name.value || '').trim();
-      var email   = (form.email && form.email.value || '').trim();
-      var service = (form.service && form.service.value || '').trim();
-      var message = (form.message && form.message.value || '').trim();
+      // Read fields via form.elements — `form.name` happens to work (HTMLFormElement is
+      // [LegacyOverrideBuiltIns], so the named-element getter beats the built-in `name`
+      // property) but it reads like a bug, so go through elements explicitly.
+      function field(n) {
+        var el = form.elements.namedItem(n);
+        return el && typeof el.value === 'string' ? el.value.trim() : '';
+      }
+
+      var name    = field('name');
+      var email   = field('email');
+      var service = field('service');
+      var message = field('message');
 
       note.className = 'form__note';
 

@@ -4,7 +4,6 @@
     .w  { fill:none; stroke:#fff; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
     .wf { fill:#fff; }
     .r  { fill:none; stroke:#E01B24; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
-    .rf { fill:#E01B24; }
   </style>
 
   <!-- ===== shield ===== -->
@@ -13,12 +12,12 @@
   <path d="M74 82 Q256 52 438 82 V262 C438 362 370 430 256 468 C142 430 74 362 74 262 Z"
         fill="#000" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
 
-  <!-- quadrant dividers (masked at centre by the roundel) -->
+  <!-- quadrant dividers (the roundel masks them at the centre) -->
   <g stroke="#fff" stroke-width="8" stroke-linecap="round">
-    <path d="M80 248 H432"/>
-    <path d="M256 62 V248"/>
-    <path d="M256 252 L168 428"/>
-    <path d="M256 252 L344 428"/>
+    <path d="M82 248 H430"/>
+    <path d="M256 72 V248"/>
+    <path d="M256 252 L170 424"/>
+    <path d="M256 252 L342 424"/>
   </g>
 
   <!-- ===== top-left : fingerprint ===== -->
@@ -35,66 +34,64 @@
     </g>
   </g>
 
-  <!-- ===== top-right : polygraph pulse ===== -->
+  <!-- ===== top-right : polygraph trace ===== -->
   <path class="r" stroke-width="8" d="M292 168 H318 L328 140 L340 196 L352 122 L364 198 L374 156 L384 168 H412"/>
 
   <!-- ===== bottom-left : investigator ===== -->
-  <g transform="translate(-4,4)">
-    <path class="w" d="M128 312 C128 294 136 284 150 284 C164 284 172 294 172 312"/>
-    <path class="w" d="M108 314 C130 306 170 306 192 314"/>
-    <path class="w" d="M134 318 C134 332 141 340 150 340 C159 340 166 332 166 318"/>
-    <path class="w" d="M116 392 C116 366 130 348 150 348 C158 348 165 351 171 355"/>
-    <path class="w" d="M182 392 C182 378 179 366 174 358"/>
-    <circle class="w" cx="196" cy="352" r="16"/>
-    <path class="w" d="M185 364 L172 378"/>
+  <g transform="translate(-8,2)">
+    <path class="w" d="M130 306 C130 290 139 281 151 281 C163 281 172 290 172 306"/>
+    <path class="w" d="M108 308 C126 300 176 300 194 308 C176 315 126 315 108 308 Z"/>
+    <path class="w" d="M138 312 C138 328 144 336 151 336 C158 336 164 328 164 312"/>
+    <path class="w" d="M118 392 C118 366 132 344 151 344 C160 344 167 347 173 353"/>
+    <path class="w" d="M181 392 C181 381 179 372 176 364"/>
+    <circle class="w" cx="190" cy="349" r="15"/>
+    <path class="w" d="M179 361 L167 374"/>
   </g>
 
   <!-- ===== bottom-right : tactical helmet ===== -->
-  <g transform="translate(6,4)">
-    <path class="w" d="M326 350 C326 320 341 302 362 302 C383 302 398 320 398 350"/>
-    <path class="w" d="M326 350 C328 364 335 373 346 377 L352 388"/>
-    <path class="w" d="M398 350 C396 362 390 370 381 375"/>
-    <path class="w" d="M344 316 C352 310 372 308 384 314"/>
-    <path class="w" stroke-width="5" d="M334 340 H352"/>
-    <path class="w" stroke-width="5" d="M334 354 H350"/>
-    <path class="w" stroke-width="5" d="M378 318 L390 330"/>
+  <g transform="translate(4,2)">
+    <path class="w" d="M330 354 C330 324 345 306 365 306 C385 306 400 324 400 354"/>
+    <path class="w" d="M339 331 C349 321 381 321 391 331"/>
+    <path class="w" d="M330 354 C330 368 337 378 348 382"/>
+    <path class="w" d="M400 354 C400 366 394 375 385 380"/>
+    <path class="w" d="M348 382 L357 393"/>
+    <path class="w" stroke-width="4.5" d="M337 345 H351"/>
+    <path class="w" stroke-width="4.5" d="M379 345 H393"/>
   </g>
 
   <!-- ===== bottom-centre : protection officer ===== -->
   <g>
-    <circle class="w" cx="256" cy="344" r="19"/>
-    <path class="rf" d="M237 342 h38 v7 a19 19 0 0 1 -38 0 z" opacity="0"/>
-    <path fill="#fff" d="M238 338 h36 v8 h-36 z"/>
-    <path fill="#000" d="M240 340 h14 v5 h-14 z M258 340 h14 v5 h-14 z"/>
-    <path class="w" d="M222 404 C222 384 236 370 256 370 C276 370 290 384 290 404"/>
-    <path class="w" d="M244 372 L256 388 L268 372"/>
-    <path class="rf" d="M256 388 L262 396 L256 412 L250 396 Z"/>
-    <path class="w" stroke-width="5" d="M274 342 C282 344 284 352 280 358"/>
+    <circle class="wf" cx="256" cy="341" r="18"/>
+    <path fill="#000" d="M240 336 h32 v3.5 a6.2 6.2 0 0 1 -12.4 0 v-1.2 h-7.2 v1.2 a6.2 6.2 0 0 1 -12.4 0 z"/>
+    <path class="w" d="M225 402 C225 384 239 371 256 371 C273 371 287 384 287 402"/>
+    <path class="w" d="M245 373 L256 388 L267 373"/>
+    <path fill="#E01B24" d="M256 388 L261 395 L256 407 L251 395 Z"/>
+    <path class="w" stroke-width="4.5" d="M272 339 C280 341 282 349 277 354"/>
   </g>
 
   <!-- ===== padlock ===== -->
-  <g transform="translate(0,4)">
-    <path class="w" d="M242 424 V415 C242 407 248 401 256 401 C264 401 270 407 270 415 V424"/>
-    <rect class="wf" x="234" y="424" width="44" height="32" rx="5"/>
-    <circle cx="256" cy="436" r="5" fill="#000"/>
-    <path d="M254 439 h4 v9 h-4 z" fill="#000"/>
+  <g>
+    <path class="w" d="M243 414 V406 C243 398 249 392 256 392 C263 392 269 398 269 406 V414"/>
+    <rect class="wf" x="235" y="414" width="42" height="31" rx="5"/>
+    <circle cx="256" cy="426" r="5" fill="#000"/>
+    <path d="M254 429 h4 v9 h-4 z" fill="#000"/>
   </g>
 
   <!-- ===== central eagle roundel ===== -->
   <circle cx="256" cy="250" r="78" fill="#000"/>
   <circle cx="256" cy="250" r="78" fill="none" stroke="#E01B24" stroke-width="13"/>
-  <g>
-    <!-- crest feathers -->
-    <path fill="#fff" d="M243 219 C236 205 238 192 249 184 C246 197 249 206 256 212 Z"/>
-    <path fill="#fff" d="M231 226 C220 214 218 199 227 190 C227 203 232 212 240 217 Z"/>
-    <path fill="#fff" d="M259 217 C258 203 265 192 277 188 C271 198 271 208 273 214 Z"/>
-    <!-- head -->
-    <path fill="#fff" d="M249 214 C269 214 285 229 287 248 C289 269 275 288 252 290 C229 292 212 276 211 255 C210 232 228 214 249 214 Z"/>
-    <!-- beak -->
-    <path fill="#fff" d="M279 236 L314 246 C318 247 318 252 314 253 L294 258 L286 270 C281 262 278 250 279 236 Z"/>
+  <g transform="translate(256,250) scale(.94) translate(-256,-250)">
+    <!-- swept crest feathers -->
+    <path fill="#fff" d="M243 200 L222 208 L208 192 Z"/>
+    <path fill="#fff" d="M219 207 L198 234 L192 214 Z"/>
+    <!-- skull, overhanging brow and long hooked beak, one angular silhouette -->
+    <path fill="#fff" d="M198 234 L219 207 L254 200 L280 212 L320 226 L314 247
+                         L299 238 L276 236 L266 267 L241 286 L212 274 L198 252 Z"/>
     <!-- neck feathers -->
-    <path fill="#fff" d="M223 280 C212 290 201 293 192 291 C203 285 210 276 214 267 Z"/>
-    <!-- eye -->
-    <circle cx="266" cy="242" r="8" fill="#E01B24"/>
+    <path fill="#fff" d="M212 274 L198 288 L228 283 Z"/>
+    <!-- mouth line separating the mandibles -->
+    <path fill="none" stroke="#000" stroke-width="4.5" stroke-linecap="round" d="M278 228 L309 236"/>
+    <!-- angular raptor eye -->
+    <path fill="#E01B24" d="M260 214 L277 220 L273 229 L257 222 Z"/>
   </g>
 </svg>

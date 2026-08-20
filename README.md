@@ -28,7 +28,13 @@ assets/
   js/main.js            # interactions (vanilla JS)
   img/integri-crest.svg # brand crest
 BRAND.md                # build contract — read before editing anything
+LAUNCH-CHECKLIST.md     # outstanding images + facts to confirm before going live
+tools/use-real-logo.sh  # swap the placeholder crest for the real artwork
 ```
+
+**Before this site goes public, work through `LAUNCH-CHECKLIST.md`.** It lists the images
+still needed and — more importantly — the claims that must be confirmed true, including the
+56 sub-services that were drafted from industry norms rather than supplied by INTEGRI.
 
 **`BRAND.md` is the source of truth.** It defines the colour tokens, typography, the exact
 contact details, the seven divisions and their sub-services, the CSS class catalogue, and the
@@ -72,12 +78,17 @@ GitHub Pages). No build command; the output directory is the repo root.
 
 ## Things to know before you edit
 
-**The logo is a recreation.** `assets/img/integri-crest.svg` was hand-authored to match the
-supplied brand mark. It is sharp at every size and about 4 KB, but it is not the original
-artwork. To use the original instead, drop the file into `assets/img/` and update the four
-references per page (`<link rel="icon">`, `apple-touch-icon`, the two `.brand__mark` images,
-and `.hero__crest` on the home page). Keep the SVG as the favicon — it renders far better at
-16 px than a downscaled PNG.
+**The crest is a placeholder.** `assets/img/integri-crest.svg` was hand-authored by eye to
+match the brand mark, because the real logo was shared in chat and never landed in the
+repository. It is not the real artwork. Swap it with one command:
+
+```bash
+./tools/use-real-logo.sh ~/Downloads/integri-logo.png
+```
+
+That copies the file into `assets/img/`, rewires all 56 references across the 11 pages
+(favicon, apple-touch-icon, og:image, header and footer marks, hero watermark), corrects
+the favicon MIME type and removes the placeholder. Accepts `.png`, `.svg` or `.webp`.
 
 **The enquiry form has no backend.** It validates in the browser and then hands off to the
 visitor's own mail client via `mailto:`, so nothing passes through a third party — but it

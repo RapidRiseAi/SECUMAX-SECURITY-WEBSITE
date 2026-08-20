@@ -85,11 +85,12 @@ section / contact page ONLY — never in the header, hero, or footer CTA.
 
 ### Directors — contact page + home contact block only
 
+Two directors are published. Do not add a third.
+
 | Name | Role | Phone (display) | `tel:` href | `wa.me` |
 |---|---|---|---|---|
 | Etienne | Director | `+27 71 118 3257` | `tel:+27711183257` | `https://wa.me/27711183257` |
 | Jacques | Director | `+27 67 161 2570` | `tel:+27671612570` | `https://wa.me/27671612570` |
-| Ruan | Director | `+27 66 285 6600` | `tel:+27662856600` | `https://wa.me/27662856600` |
 
 Display numbers use non-breaking spaces: `+27&nbsp;71&nbsp;118&nbsp;3257`.
 

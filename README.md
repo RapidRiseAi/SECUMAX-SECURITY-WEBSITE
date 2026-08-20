@@ -28,13 +28,16 @@ assets/
   js/main.js            # interactions (vanilla JS)
   img/integri-crest.svg # brand crest
 BRAND.md                # build contract — read before editing anything
-LAUNCH-CHECKLIST.md     # outstanding images + facts to confirm before going live
+CLIENT-PACK.md          # for the client: 56 services to confirm + documents needed
+BUILD-STATUS.md         # for the team: what's done, blocked and queued
 tools/use-real-logo.sh  # swap the placeholder crest for the real artwork
 ```
 
-**Before this site goes public, work through `LAUNCH-CHECKLIST.md`.** It lists the images
-still needed and — more importantly — the claims that must be confirmed true, including the
-56 sub-services that were drafted from industry norms rather than supplied by INTEGRI.
+**This site is not ready to go public.** `BRAND.md` §1 carries a publication gate covering
+three unresolved items: PSIRA registration status (asserted in 79 places but not yet confirmed),
+director titles that contradict the CIPC record, and 56 sub-services drafted from industry norms
+rather than supplied by the client. `CLIENT-PACK.md` is what goes to the client;
+`BUILD-STATUS.md` is the internal view.
 
 **`BRAND.md` is the source of truth.** It defines the colour tokens, typography, the exact
 contact details, the seven divisions and their sub-services, the CSS class catalogue, and the
@@ -102,10 +105,15 @@ only ones supplied. There are no client counts, success rates, years-in-business
 staff numbers, response-time guarantees or testimonials. If you add any, make sure they are
 true and substantiated — see the fabrication ban in `BRAND.md` §1.
 
-**Not yet supplied, and therefore absent from the site:** a physical address, business hours
-beyond "24/7", social media accounts, a company registration number, and a PSIRA registration
-number. Several of these are worth adding once available — a PSIRA number in the footer in
-particular is a strong trust signal for South African clients.
+**Confirmed and on the site:** registered name *INTEGRI Forensic Services (Pty) Ltd* and CIPC
+number *2026/561988/07*, both in the footer of every page.
+
+**Not yet supplied, and therefore absent:** PSIRA registration number, firearm-training
+accreditation number, VAT number, business hours beyond "24/7", and social media accounts.
+
+**Deliberately withheld:** the registered office address is also a director's residential
+address, so it is not published — that is the client's call to make, not ours. The director's
+ID number is not recorded in this repository at all.
 
 ---
 

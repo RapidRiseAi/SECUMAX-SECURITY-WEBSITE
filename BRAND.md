@@ -17,6 +17,53 @@
 | Country | South Africa |
 | Website | `https://www.integriforensicandprotectionservices.com` |
 
+### Legal entity — confirmed from the CIPC disclosure certificate (16 July 2026)
+
+| Field | Value | On the site? |
+|---|---|---|
+| Registered name | **INTEGRI FORENSIC SERVICES (PTY) LTD** | Yes — footer |
+| Registration number | **2026/561988/07** | Yes — footer |
+| Entity type | Private company | No |
+| Registration date | 16 July 2026 | No — see the longevity note below |
+| Status | In business | No |
+| Financial year end | February | No |
+| Registered office | 1175B Mvuli Street, Moregloed, Pretoria, Gauteng, 0186 | **NO — withheld, see below** |
+| CIPC-registered director | Coetser, Anri (sole active director) | **NO — see discrepancy below** |
+
+The trading name (*INTEGRI Forensic and Protection Services*) differs from the registered
+name (*INTEGRI Forensic Services (Pty) Ltd*). The footer discloses both. Keep it that way.
+
+**The registered office is also the director's residential address.** It is not published,
+and it must not be published without the client's explicit instruction — this is a
+protection-services firm, and putting a director's home address on a public website is a
+personal-safety decision that belongs to them, not to us. A commercial or PO Box address is
+the usual answer.
+
+The director's ID number appears on the certificate and is **deliberately not recorded in
+this repository** and must never appear on the site.
+
+### 🔴 PUBLICATION GATE — three unresolved items block go-live
+
+The site must not be made public until each of these is answered by the client.
+
+1. **PSIRA registration status.** The site asserts *PSIRA Registered & Compliant* in
+   **79 places across all 11 pages**, plus the meta descriptions. The client has said the
+   PSIRA certification is still being awaited. If registration has **not** been granted,
+   every one of those claims is false, and rendering security services without registration
+   is an offence under the Private Security Industry Regulation Act. Establish whether
+   registration is *granted* (awaiting the paper certificate) or *still pending*. If pending,
+   all 79 claims come off before launch.
+2. **Director titles.** The site describes **Etienne** and **Jacques** as *Director*. The
+   CIPC record lists **one** active director: **Anri Coetser**. Publishing an unregistered
+   person as a company director is a misrepresentation. Confirm each person's actual role
+   and re-title accordingly.
+3. **The 56 sub-services.** See §7 — drafted from industry norms, not supplied by the
+   client. Each needs a keep / remove / reword.
+
+### Longevity — do not imply otherwise
+The company was registered on **16 July 2026**. It is weeks old. The fabrication ban below
+already forbids years-in-business claims; that ban is doubly important here.
+
 ### Credentials — the ONLY accreditation claims permitted
 - **PSIRA Registered & Compliant** (Private Security Industry Regulatory Authority)
 - **Accredited Firearm Training** — "accredited training for responsible citizens"

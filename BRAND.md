@@ -42,23 +42,20 @@ the usual answer.
 The director's ID number appears on the certificate and is **deliberately not recorded in
 this repository** and must never appear on the site.
 
-### 🔴 PUBLICATION GATE — three unresolved items block go-live
+### 🔴 PUBLICATION GATE — two unresolved items block go-live
 
-The site must not be made public until each of these is answered by the client.
-
-1. **PSIRA registration status.** The site asserts *PSIRA Registered & Compliant* in
-   **79 places across all 11 pages**, plus the meta descriptions. The client has said the
-   PSIRA certification is still being awaited. If registration has **not** been granted,
-   every one of those claims is false, and rendering security services without registration
-   is an offence under the Private Security Industry Regulation Act. Establish whether
-   registration is *granted* (awaiting the paper certificate) or *still pending*. If pending,
-   all 79 claims come off before launch.
-2. **Director titles.** The site describes **Etienne** and **Jacques** as *Director*. The
+1. **Director titles.** The site describes **Etienne** and **Jacques** as *Director*. The
    CIPC record lists **one** active director: **Anri Coetser**. Publishing an unregistered
    person as a company director is a misrepresentation. Confirm each person's actual role
-   and re-title accordingly.
-3. **The 56 sub-services.** See §7 — drafted from industry norms, not supplied by the
-   client. Each needs a keep / remove / reword.
+   and re-title accordingly. No replacement title has been guessed.
+2. **The 56 sub-services.** See §7 — drafted from industry norms, not supplied by the
+   client. Each needs a keep / remove / reword. Sent to the client as
+   `handover/INTEGRI-Information-Request.pdf` / `.xlsx`.
+
+**PSIRA is confirmed.** The client has stated INTEGRI is PSIRA registered; only the paper
+certificate is outstanding. The 79 registration claims across the site therefore stand.
+Add the registration number to the footer as soon as the certificate arrives — a number
+makes the claim verifiable, which an unnumbered assertion is not.
 
 ### Longevity — do not imply otherwise
 The company was registered on **16 July 2026**. It is weeks old. The fabrication ban below
@@ -153,7 +150,7 @@ either**. Omit those blocks entirely.
 | `index.html` | Home | Orchestrator (DONE — canonical pattern) |
 | `assets/css/styles.css` | Design system | Orchestrator — **FROZEN** |
 | `assets/js/main.js` | Behaviour | Orchestrator — **FROZEN** |
-| `assets/img/integri-crest.svg` | Logo | Orchestrator — **FROZEN** |
+| `assets/img/integri-crest.png` | Logo (client artwork) | Orchestrator — **FROZEN** |
 | `services/index.html` | Services hub | Agent A |
 | `services/investigation.html` | Investigation | Agent A |
 | `services/forensic.html` | Forensic | Agent A |
@@ -182,7 +179,7 @@ Apply `{B}` to every asset and internal link:
 |---|---|---|
 | Stylesheet | `assets/css/styles.css` | `../assets/css/styles.css` |
 | Script | `assets/js/main.js` | `../assets/js/main.js` |
-| Crest | `assets/img/integri-crest.svg` | `../assets/img/integri-crest.svg` |
+| Crest | `assets/img/integri-crest.png` | `../assets/img/integri-crest.png` |
 | Home | `index.html` | `../index.html` |
 | About | `about.html` | `../about.html` |
 | Contact | `contact.html` | `../contact.html` |
@@ -376,7 +373,11 @@ Per page you must set: `<title>`, `<meta name="description">`, `og:title`,
 - Description: 140–160 characters, mentions South Africa and PSIRA where natural.
 - Canonical: `https://www.integriforensicandprotectionservices.com/<path>`
 - `<meta name="theme-color" content="#000000">`
-- Favicon: `<link rel="icon" href="{B}assets/img/integri-crest.svg" type="image/svg+xml">`
+- Favicon set (copy the block from `index.html`):
+  `favicon-32.png` (32x32), `favicon-192.png` (192x192), `apple-touch-icon.png` (180x180),
+  plus `<link rel="manifest" href="{B}site.webmanifest">`
+- `og:image` is the absolute URL of `assets/img/og-image.png` (1200x630), with
+  `og:image:width`, `og:image:height` and `twitter:card` alongside it
 
 Copy the whole block from `index.html` and change only the page-specific values.
 

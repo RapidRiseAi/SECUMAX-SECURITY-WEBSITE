@@ -26,7 +26,11 @@ services/
 assets/
   css/styles.css        # complete design system
   js/main.js            # interactions (vanilla JS)
-  img/integri-crest.svg # brand crest
+  img/integri-crest.png # brand crest (768px)
+  img/favicon-*.png     # 32 / 192 / 512 icon set
+  img/apple-touch-icon.png
+  img/og-image.png      # 1200x630 link-preview card
+  brand/                # master logo artwork (source, not shipped)
 BRAND.md                # build contract — read before editing anything
 CLIENT-PACK.md          # for the client: 56 services to confirm + documents needed
 BUILD-STATUS.md         # for the team: what's done, blocked and queued
@@ -81,17 +85,15 @@ GitHub Pages). No build command; the output directory is the repo root.
 
 ## Things to know before you edit
 
-**The crest is a placeholder.** `assets/img/integri-crest.svg` was hand-authored by eye to
-match the brand mark, because the real logo was shared in chat and never landed in the
-repository. It is not the real artwork. Swap it with one command:
+**The logo is the client's real artwork.** `assets/brand/integri-crest-master.png` is the
+supplied 4000x4000 transparent original and is the source of truth. Everything under
+`assets/img/` is generated from it — trimmed to content, padded square, and quantised to a
+64-colour palette (41 KB rather than 415 KB, with no visible difference on a mark this flat).
+If the artwork is ever reissued, replace the master and regenerate rather than editing the
+derived files by hand.
 
-```bash
-./tools/use-real-logo.sh ~/Downloads/integri-logo.png
-```
-
-That copies the file into `assets/img/`, rewires all 56 references across the 11 pages
-(favicon, apple-touch-icon, og:image, header and footer marks, hero watermark), corrects
-the favicon MIME type and removes the placeholder. Accepts `.png`, `.svg` or `.webp`.
+`tools/use-real-logo.sh` remains for a straight one-file swap, but the generated set —
+favicon sizes, apple-touch-icon, OG card — is the better path.
 
 **The enquiry form has no backend.** It validates in the browser and then hands off to the
 visitor's own mail client via `mailto:`, so nothing passes through a third party — but it

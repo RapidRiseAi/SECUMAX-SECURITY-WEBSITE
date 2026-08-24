@@ -78,8 +78,12 @@ Do **NOT** write any of the following anywhere on the site:
 - Response-time guarantees in minutes
 
 Permitted, non-numeric trust signals only: `PSIRA Registered & Compliant`,
-`Accredited Firearm Training`, `24/7 Operations`, `7 Specialised Divisions`,
-`National Coverage`, `Court-Ready Reporting`, `Confidential`, `Chain of Custody`.
+`Firearm Training`, `24/7 Operations`, `7 Specialised Divisions`,
+`National Coverage`, `Confidential`, `Scoped Per Assignment`.
+
+**Withdrawn:** `Court-Ready Reporting` and `Chain of Custody` are no longer permitted —
+both name services parked in `SERVICE-STATUS.md` (Court-ready forensic reporting; Evidence
+handling & chain of custody). A badge may not assert a capability the page itself parks.
 Stat counters may ONLY use: `7` (divisions), `24/7` (operations). Nothing else.
 
 ---

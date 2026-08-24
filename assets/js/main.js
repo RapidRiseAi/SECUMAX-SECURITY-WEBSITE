@@ -1,7 +1,7 @@
 /* =========================================================
-   INTEGRI Forensic and Protection Services — interactions
+   INTEGRI Forensic and Protection Services: interactions
    Vanilla JS, no dependencies. Shared by every page.
-   FROZEN FILE — see BRAND.md §5
+   FROZEN FILE: see BRAND.md §5
    ========================================================= */
 (function () {
   'use strict';
@@ -141,7 +141,7 @@
       e.preventDefault();
       if (!note) return;
 
-      // Read fields via form.elements — `form.name` happens to work (HTMLFormElement is
+      // Read fields via form.elements. `form.name` happens to work (HTMLFormElement is
       // [LegacyOverrideBuiltIns], so the named-element getter beats the built-in `name`
       // property) but it reads like a bug, so go through elements explicitly.
       function field(n) {
@@ -162,22 +162,22 @@
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        note.textContent = 'That email address does not look right — please check it.';
+        note.textContent = 'That email address does not look right. Please check it.';
         note.classList.add('err');
         return;
       }
 
-      var subject = 'Website enquiry' + (service ? ' — ' + service : '');
+      var subject = 'Website enquiry' + (service ? ': ' + service : '');
       var body    = 'Name: ' + name +
                     '\nEmail: ' + email +
                     (service ? '\nService: ' + service : '') +
                     '\n\n' + message;
 
-      window.location.href = 'mailto:ops@integriforensicandprotectionservices.com'
+      window.location.href = 'mailto:ops@integriforensicservices.com'
         + '?subject=' + encodeURIComponent(subject)
         + '&body='    + encodeURIComponent(body);
 
-      note.textContent = 'Opening your email app — if nothing happens, write to us directly at ops@integriforensicandprotectionservices.com';
+      note.textContent = 'Opening your email app. If nothing happens, write to us directly at ops@integriforensicservices.com';
       note.classList.add('ok');
       form.reset();
     });

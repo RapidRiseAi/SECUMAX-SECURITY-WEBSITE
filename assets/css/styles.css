@@ -1,8 +1,8 @@
 /* =========================================================
-   INTEGRI Forensic and Protection Services — Design System
+   INTEGRI Forensic and Protection Services: Design System
    Black · Red (#E01B24) · White
    Chakra Petch (display) · Barlow (UI) · Barlow Condensed (labels)
-   FROZEN FILE — see BRAND.md §5
+   FROZEN FILE: see BRAND.md §5
    ========================================================= */
 
 :root{
@@ -401,7 +401,7 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
   display:block;font-family:'Chakra Petch',sans-serif;font-size:1.6rem;
   color:var(--ink);font-weight:700;line-height:1.1;
 }
-/* direct child only — a counter <span> nested inside <strong> must keep the large size */
+/* direct child only: a counter <span> nested inside <strong> must keep the large size */
 .trust__item > span{
   display:block;margin-top:5px;font-family:'Barlow Condensed',sans-serif;
   font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:600;

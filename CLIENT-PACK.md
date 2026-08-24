@@ -193,8 +193,8 @@ being left unsupported.
 - **Address** — the CIPC registered office is a residential address. It is **not** published.
   Is there a commercial or PO Box address to use instead, or should the site carry none?
 - **Business hours** — office hours for admin, separate from emergency availability.
-- **Email** — is `ops@integriforensicandprotectionservices.com` live and monitored?
-- **Domain** — is `integriforensicandprotectionservices.com` registered in INTEGRI's name?
+- **Email** — is `ops@integriforensicservices.com` live and monitored?
+- **Domain** — is `integriforensicservices.com` registered in INTEGRI's name?
 - **Enquiry form** — currently opens the visitor's own mail app, so there is no record on
   INTEGRI's side. Should enquiries be captured and emailed automatically instead?
 - **Social media** — any accounts to link? None are on the site because none were supplied.
@@ -224,7 +224,7 @@ every page and in the browser tab.
 | Registered company name | INTEGRI Forensic Services (Pty) Ltd | Footer, every page |
 | Registration number | 2026/561988/07 | Footer, every page |
 | Trading name | INTEGRI Forensic and Protection Services | Throughout |
-| Email | ops@integriforensicandprotectionservices.com | Every page |
+| Email | ops@integriforensicservices.com | Every page — confirmed from the business profile |
 | Etienne | +27 71 118 3257 · WhatsApp | Home, about, contact |
 | Jacques | +27 67 161 2570 · WhatsApp | Home, about, contact |
 

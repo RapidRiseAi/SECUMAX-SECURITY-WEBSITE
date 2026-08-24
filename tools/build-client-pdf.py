@@ -151,7 +151,7 @@ c.drawString(M, y, "Already confirmed — no action needed"); y -= 16
 for label, val in [("Registered company name", "INTEGRI Forensic Services (Pty) Ltd"),
                    ("Company registration number", "2026/561988/07"),
                    ("Trading name on the website", "INTEGRI Forensic and Protection Services"),
-                   ("Email address", "ops@integriforensicandprotectionservices.com"),
+                   ("Email address", "ops@integriforensicservices.com"),
                    ("Logo artwork", "Received and live on the site")]:
     c.setFont("Helvetica", 9); c.setFillColor(MUTED); c.drawString(M + 8, y, label)
     c.setFont("Helvetica-Bold", 9); c.setFillColor(INK); c.drawString(M + 190, y, val)

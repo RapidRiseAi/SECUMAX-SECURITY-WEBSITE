@@ -15,7 +15,7 @@
 | Tagline (under wordmark) | `Forensic and Protection Services` |
 | Positioning line | Evidence-led investigation. Uncompromising protection. |
 | Country | South Africa |
-| Website | `https://www.integriforensicandprotectionservices.com` |
+| Website | `https://www.integriforensicservices.com` |
 
 ### Legal entity — confirmed from the CIPC disclosure certificate (16 July 2026)
 
@@ -33,29 +33,32 @@
 The trading name (*INTEGRI Forensic and Protection Services*) differs from the registered
 name (*INTEGRI Forensic Services (Pty) Ltd*). The footer discloses both. Keep it that way.
 
-**The registered office is also the director's residential address.** It is not published,
-and it must not be published without the client's explicit instruction — this is a
-protection-services firm, and putting a director's home address on a public website is a
-personal-safety decision that belongs to them, not to us. A commercial or PO Box address is
-the usual answer.
+**The registered office is also the director's residential address.** The client publishes it
+in their own Business Profile, so it may be published on the site. Worth raising with them once
+that a residential address on a public protection-services site is a deliberate choice — but it
+is theirs to make, and they have made it.
 
 The director's ID number appears on the certificate and is **deliberately not recorded in
 this repository** and must never appear on the site.
 
-### 🔴 PUBLICATION GATE — two unresolved items block go-live
+### 🔴 PUBLICATION GATE — unresolved items that block go-live
 
-1. **Director titles.** The site describes **Etienne** and **Jacques** as *Director*. The
-   CIPC record lists **one** active director: **Anri Coetser**. Publishing an unregistered
-   person as a company director is a misrepresentation. Confirm each person's actual role
-   and re-title accordingly. No replacement title has been guessed.
-2. **The 56 sub-services.** See §7 — drafted from industry norms, not supplied by the
-   client. Each needs a keep / remove / reword. Sent to the client as
-   `handover/INTEGRI-Information-Request.pdf` / `.xlsx`.
+1. **RESOLVED — domain.** The client has confirmed the short domain from their Business Profile:
+   `ops@integriforensicservices.com` and `www.integriforensicservices.com`. This matches the
+   registered company name. The long form from the business cards
+   (`integriforensicandprotectionservices.com`) is **wrong and must never be reintroduced** —
+   the validator fails the build on it. Note the printed business cards carry the wrong address.
+2. **Director titles.** The site and the client's own profile both title **Etienne** and
+   **Jacques** as *Director*. The CIPC certificate lists **one** active director,
+   **Anri Coetser**. The client's profile is their own published position, so this is no longer
+   ours to correct — but it should be raised with them once, in writing, and the answer recorded.
+3. **The 44 parked services.** See `SERVICE-STATUS.md`. Commented out, not deleted. None may be
+   re-enabled without written client confirmation.
 
-**PSIRA is confirmed.** The client has stated INTEGRI is PSIRA registered; only the paper
-certificate is outstanding. The 79 registration claims across the site therefore stand.
-Add the registration number to the footer as soon as the certificate arrives — a number
-makes the claim verifiable, which an unnumbered assertion is not.
+**Resolved:** PSIRA registration is confirmed by the client (certificate still awaited — add the
+number to the footer when it lands). The **address is now publishable**: the client prints
+1175B Mvuli Street, Moregloed, Pretoria in their own profile, so the earlier privacy hold falls
+away. The **logo** has been supplied and is live.
 
 ### Longevity — do not imply otherwise
 The company was registered on **16 July 2026**. It is weeks old. The fabrication ban below
@@ -124,8 +127,8 @@ section / contact page ONLY — never in the header, hero, or footer CTA.
 
 | Field | Value |
 |---|---|
-| Email | `ops@integriforensicandprotectionservices.com` |
-| Email link | `mailto:ops@integriforensicandprotectionservices.com` |
+| Email | `ops@integriforensicservices.com` |
+| Email link | `mailto:ops@integriforensicservices.com` |
 
 ### Directors — contact page + home contact block only
 
@@ -207,85 +210,56 @@ Available sprite ids (nothing else exists — do not invent one):
 
 | # | Division | File | Sprite id | Blurb (use verbatim on cards) |
 |---|---|---|---|---|
-| 01 | Investigation Services | `investigation.html` | `#i-investigation` | Discreet, evidence-led enquiry into fraud, misconduct and loss — documented to a standard that survives scrutiny. |
-| 02 | Forensic Services | `forensic.html` | `#i-forensic` | Scene-to-courtroom forensic capability: collection, examination and reporting with an unbroken chain of custody. |
-| 03 | Polygraph Services | `polygraph.html` | `#i-polygraph` | Structured credibility assessment for screening, incident resolution and internal integrity programmes. |
-| 04 | Security Services | `security.html` | `#i-security` | Risk assessment, access control, surveillance systems and the policy framework that holds them together. |
-| 05 | Protection Services | `protection.html` | `#i-protection` | Close protection for principals, families and executives — low-profile, professional, planned around the threat. |
-| 06 | Guarding Services | `guarding.html` | `#i-guarding` | Vetted, supervised guarding for sites, estates, retail and industry, with real accountability on shift. |
-| 07 | Specialized Services | `specialized.html` | `#i-specialized` | Accredited firearm training, escorts, recovery and bespoke operations for requirements that fall outside the standard scope. |
+| 01 | Investigation Services | `investigation.html` | `#i-investigation` | Special investigations covering track and trace, vetting, criminal record checks, extortion, evictions and kidnap and ransom matters. |
+| 02 | Forensic Services | `forensic.html` | `#i-forensic` | Forensic support aligned to investigative requirements — structured case work on evidence-focused matters, scoped around the assignment. |
+| 03 | Polygraph Services | `polygraph.html` | `#i-polygraph` | Polygraph examinations supporting investigations, screening and verification — stand-alone, or as part of a wider enquiry. |
+| 04 | Security Services | `security.html` | `#i-security` | Operational security built around asset protection and high-value movements, with a planned security presence scoped to the risk. |
+| 05 | Protection Services | `protection.html` | `#i-protection` | Executive close protection, special event security and secure drivers — structured around the principal's routine and threat picture. |
+| 06 | Guarding Services | `guarding.html` | `#i-guarding` | A dedicated guarding capability, tailored to the site, assignment and risk environment, and integrated with the other divisions. |
+| 07 | Specialized Services | `specialized.html` | `#i-specialized` | Mining security, illegal mining prevention, riot and civil unrest control, dedicated searches and a full training capability. |
 
-### Sub-services (use these exact lists — do not add or rename)
+### Published services — taken from the client's Business Profile
 
-**01 Investigation Services**
-- Corporate & internal investigations
-- Fraud & financial crime enquiry
-- Surveillance & counter-surveillance
-- Background screening & vetting
-- Insurance claim investigation
-- Asset tracing & due diligence
-- Missing persons tracing
-- Matrimonial & domestic enquiry
+**`SERVICE-STATUS.md` is the authority.** It records, for every service, whether it is
+published or parked, and why. Do not add a service to any page unless it appears there as
+LIVE or NEW. 44 previously drafted services are parked pending client verification and are
+commented out in the markup marked `PENDING VERIFICATION` — never delete those blocks, and
+never re-enable one without written confirmation from the client.
 
-**02 Forensic Services**
-- Crime scene processing & documentation
-- Fingerprint collection & comparison
-- Questioned document examination
-- Digital & mobile device forensics
-- Forensic auditing
-- Evidence handling & chain of custody
-- Expert witness testimony
-- Court-ready forensic reporting
+**01 Investigation Services** — Track and Trace · Vetting · Criminal Record Checks ·
+Extortion Cases · Evictions · Kidnap and Ransom Cases · Polygraphs
 
-**03 Polygraph Services**
-- Pre-employment screening examinations
-- Periodic integrity testing
-- Specific-issue (incident) examinations
-- Theft & shrinkage investigations
-- Disciplinary hearing support
-- Internal integrity programmes
-- Structured pre-test interviewing
-- Documented examination reporting
+**02 Forensic Services** — no itemised list. The profile defines scope per assignment:
+*"forensic support aligned to investigative requirements, structured case work and
+evidence-focused matters."* Do not itemise this division without client confirmation.
 
-**04 Security Services**
-- Security risk assessments
-- Access control & visitor management
-- CCTV design, installation & monitoring
-- Alarm systems & response coordination
-- Perimeter & physical security design
-- Control room & monitoring solutions
-- Security policy & SOP development
-- Security audits & compliance reviews
+**03 Polygraph Services** — Examinations supporting investigations · Screening examinations ·
+Internal enquiry support
 
-**05 Protection Services**
-- Close protection officers
-- Executive & corporate protection
-- Family & residential protection
-- Secure chauffeur & transport
-- Travel risk management & advance work
-- Event & dignitary protection
-- Threat & vulnerability assessment
-- Female close protection officers
+**04 Security Services** — Risk-based security support · Asset Protection · Bullion Runs ·
+High Value Assets in Transit
 
-**06 Guarding Services**
-- Static & site guarding
-- Access control officers
-- Residential estate guarding
-- Retail & commercial guarding
-- Construction & industrial site security
-- Mobile patrols & guard monitoring
-- Reaction & response officers
-- Supervision & control room staffing
+**05 Protection Services** — Executive Close Protection · Corporate Executive Close
+Protection · Special Event Security · Secure Drivers
 
-**07 Specialized Services**
-- Accredited firearm training
-- Tactical & refresher training
-- Valuable goods & cash escorts
-- Asset & vehicle recovery
-- Loss prevention programmes
-- Undercover operative placement
-- Crowd & labour unrest support
-- Bespoke risk solutions
+**06 Guarding Services** — no itemised list. The profile defines it as *"tailored to the
+site, assignment and risk environment"*. Do not itemise without client confirmation.
+
+**07 Specialized Services** — Mining Security · Illegal Mining Prevention Teams ·
+Riot / Civil Unrest Control · Dedicated Searches · Mining Investigations · Firearm Training ·
+Corporate Training · Riot Control Training · Security Training · Bespoke risk solutions
+
+### Framing that must not be softened
+- **Riot / Civil Unrest Control** and **Riot Control Training** — lawful, defensive,
+  de-escalation-first support to a client's site and personnel. Never strike-breaking.
+- **Illegal Mining Prevention Teams** — prevention, detection and lawful response
+  coordinated with the mine and the authorities. Never an armed force acting on its own.
+- **Dedicated Searches** — lawful, with the client's mandate, in line with the site's own
+  search policy and employees' rights.
+- **Firearm Training** — no promise of a licence outcome. The Registrar decides.
+- **Polygraph** — a structured credibility assessment requiring written informed consent,
+  producing an examiner's opinion rather than proof. Never an accuracy percentage, never a
+  court-admissibility claim, never grounds for dismissal on its own.
 
 ---
 
@@ -371,7 +345,7 @@ Per page you must set: `<title>`, `<meta name="description">`, `og:title`,
 - Title format: `<Page Name> | INTEGRI Forensic and Protection Services`
   (home is `INTEGRI Forensic and Protection Services | …`)
 - Description: 140–160 characters, mentions South Africa and PSIRA where natural.
-- Canonical: `https://www.integriforensicandprotectionservices.com/<path>`
+- Canonical: `https://www.integriforensicservices.com/<path>`
 - `<meta name="theme-color" content="#000000">`
 - Favicon set (copy the block from `index.html`):
   `favicon-32.png` (32x32), `favicon-192.png` (192x192), `apple-touch-icon.png` (180x180),

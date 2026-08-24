@@ -23,6 +23,7 @@ spec.loader.exec_module(bx)
 openpyxl.Workbook.save = _orig_save
 
 SERVICES, COMPANY, PEOPLE, DOCUMENTS = bx.SERVICES, bx.COMPANY, bx.PEOPLE, bx.DOCUMENTS
+HOLD, GROUP, LIVE = bx.HOLD, bx.GROUP, bx.LIVE
 
 W, H = A4
 M       = 38                 # page margin
@@ -165,11 +166,11 @@ for ln in wrap("We do not publish, and do not need, any ID numbers or residentia
 
 # ---------------------------------------------------------------- A: services
 new_page("Section A — Services")
-section("Section A", "Your 56 services",
-        "These seven divisions come from your own logo and are correct. The services listed under each "
-        "one were drafted by us from what a South African firm in each field normally offers — none were "
-        "supplied by INTEGRI. For each line, tick TRUE if INTEGRI can deliver it today, or FALSE if it "
-        "should come off the website. Use the note column to reword anything that is close but not quite right.")
+section("Section A", "44 services we have taken off your website",
+        "We compared the website against your business profile. These 44 services do not appear in the "
+        "profile, so we have taken them off rather than advertise something we cannot back up. Nothing is "
+        "deleted — tick TRUE against any INTEGRI actually does and it goes straight back on. Tick FALSE and "
+        "it stays off for good.")
 
 COL_REF, COL_SVC, COL_T, COL_F, COL_NOTE = 26, 236, 34, 34, 150
 X_REF  = M
@@ -191,7 +192,10 @@ def svc_header():
     y -= 22
 
 svc_header()
-for no, div, items in SERVICES:
+for no, div, all_items in SERVICES:
+    items = [(n, t) for n, t in all_items if n in HOLD]
+    if not items:
+        continue
     need(46, "Section A — Services")
     c.setFillColor(SHADE); c.rect(M, y - 14, CW, 17, stroke=0, fill=1)
     c.setFillColor(RED); c.setFont("Helvetica-Bold", 9)
@@ -199,7 +203,7 @@ for no, div, items in SERVICES:
     c.setFillColor(INK); c.setFont("Helvetica-Bold", 10)
     c.drawString(X_SVC + 2, y - 9, div)
     c.setFillColor(MUTED); c.setFont("Helvetica", 8)
-    c.drawRightString(W - M - 4, y - 9, f"{len(items)} services")
+    c.drawRightString(W - M - 4, y - 9, f"{len(items)} parked")
     y -= 22
 
     for i, (name, truth) in enumerate(items, start=1):
@@ -240,6 +244,27 @@ for no, div, items in SERVICES:
 
         y = top - rh
         c.setStrokeColor(RULE); c.setLineWidth(0.4); c.line(M, y + 3, W - M, y + 3)
+
+# ---------------------------------------------------------------- A2: now live
+new_page("Section A2 — Live services")
+section("Section A2", "What your website says today",
+        "Taken straight from your business profile. No action needed unless something here is wrong — "
+        "if it is, tell us and we will change it.")
+for div, items in LIVE:
+    need(30 + len(items) * 13, "Section A2 — Live services")
+    c.setFillColor(SHADE); c.rect(M, y - 15, CW, 18, stroke=0, fill=1)
+    c.setFillColor(RED); c.setFont("Helvetica-Bold", 9)
+    c.drawString(M + 4, y - 10, div)
+    c.setFillColor(MUTED); c.setFont("Helvetica", 8)
+    c.drawRightString(W - M - 4, y - 10, f"{len(items)} live")
+    y -= 24
+    for nm in items:
+        c.setFillColor(HexColor("#1F7A4D")); c.setFont("Helvetica-Bold", 8)
+        c.drawString(M + 6, y, "LIVE")
+        c.setFillColor(INK); c.setFont("Helvetica", 9)
+        c.drawString(M + 40, y, nm)
+        y -= 13
+    y -= 8
 
 # ---------------------------------------------------------------- B: company
 new_page("Section B — Company details")

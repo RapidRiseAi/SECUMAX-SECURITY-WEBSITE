@@ -165,6 +165,61 @@ SERVICES = [
 ]),
 ]
 
+# ------------------------------------------------------------------
+# Status against the client's Business Profile (see SERVICE-STATUS.md).
+# HOLD services are parked on the site and are what this workbook asks about.
+# ------------------------------------------------------------------
+GROUP = {
+ "A": "Significant capability absent from your profile",
+ "B": "Needs a named, qualified person",
+ "C": "Plausible extension of confirmed work",
+ "D": "Superseded or narrow",
+}
+HOLD = {
+ # Group A
+ "CCTV design, installation & monitoring":"A", "Alarm systems & response coordination":"A",
+ "Access control & visitor management":"A", "Control room & monitoring solutions":"A",
+ "Perimeter & physical security design":"A", "Static & site guarding":"A",
+ "Residential estate guarding":"A", "Retail & commercial guarding":"A",
+ "Construction & industrial site security":"A", "Mobile patrols & guard monitoring":"A",
+ "Reaction & response officers":"A", "Corporate & internal investigations":"A",
+ # Group B
+ "Fingerprint collection & comparison":"B", "Questioned document examination":"B",
+ "Digital & mobile device forensics":"B", "Forensic auditing":"B",
+ "Expert witness testimony":"B", "Crime scene processing & documentation":"B",
+ "Evidence handling & chain of custody":"B", "Court-ready forensic reporting":"B",
+ "Fraud & financial crime enquiry":"B", "Surveillance & counter-surveillance":"B",
+ # Group C
+ "Asset tracing & due diligence":"C", "Insurance claim investigation":"C",
+ "Matrimonial & domestic enquiry":"C", "Periodic integrity testing":"C",
+ "Theft & shrinkage investigations":"C", "Internal integrity programmes":"C",
+ "Security policy & SOP development":"C", "Security audits & compliance reviews":"C",
+ "Family & residential protection":"C", "Travel risk management & advance work":"C",
+ "Threat & vulnerability assessment":"C", "Access control officers":"C",
+ # Group D
+ "Missing persons tracing":"D", "Valuable goods & cash escorts":"D",
+ "Tactical & refresher training":"D", "Structured pre-test interviewing":"D",
+ "Documented examination reporting":"D", "Supervision & control room staffing":"D",
+ "Female close protection officers":"D", "Asset & vehicle recovery":"D",
+ "Loss prevention programmes":"D", "Undercover operative placement":"D",
+}
+LIVE = [
+ ("01 Investigation", ["Track and Trace","Vetting","Criminal Record Checks","Extortion Cases",
+                       "Evictions","Kidnap and Ransom Cases","Polygraphs"]),
+ ("02 Forensic",      ["No itemised list — scope defined per assignment, per your profile"]),
+ ("03 Polygraph",     ["Examinations supporting investigations","Screening examinations",
+                       "Internal enquiry support"]),
+ ("04 Security",      ["Risk-based security support","Asset Protection","Bullion Runs",
+                       "High Value Assets in Transit"]),
+ ("05 Protection",    ["Executive Close Protection","Corporate Executive Close Protection",
+                       "Special Event Security","Secure Drivers"]),
+ ("06 Guarding",      ["No itemised list — scope defined per assignment, per your profile"]),
+ ("07 Specialized",   ["Mining Security","Illegal Mining Prevention Teams",
+                       "Riot / Civil Unrest Control","Dedicated Searches","Mining Investigations",
+                       "Firearm Training","Corporate Training","Riot Control Training",
+                       "Security Training","Bespoke risk solutions"]),
+]
+
 COMPANY = [
  ("Registered company name", "INTEGRI Forensic Services (Pty) Ltd", "Confirmed from CIPC certificate", False),
  ("Company registration number", "2026/561988/07", "Confirmed from CIPC certificate", False),
@@ -287,16 +342,17 @@ r += 2
 c = ws.cell(r, 2, "Questions? Reply to this email and we will walk through it with you.")
 c.font = smal
 
-# ---------------- Sheet 2: Services ----------------
-ws = wb.create_sheet("Services")
-banner(ws, "The 56 services on your website",
-       "Mark each TRUE or FALSE. Anything FALSE comes off the site. Use the note column to reword.", 6)
-widths = [6, 26, 34, 52, 14, 40]
-for i, w in enumerate(widths, start=1):
+# ---------------- Sheet 2: Services to verify ----------------
+ws = wb.create_sheet("Services to verify")
+banner(ws, "44 services we have taken OFF your website",
+       "These are not in your business profile, so we parked them. Mark each one TRUE if INTEGRI "
+       "does it, and we will put it back.", 7)
+for i, w in enumerate([6, 24, 32, 46, 26, 13, 34], start=1):
     ws.column_dimensions[get_column_letter(i)].width = w
 
 HROW = 4
-heads = ["Ref", "Division", "Service", "What has to be true for us to advertise this", "TRUE / FALSE", "Your note or rewording"]
+heads = ["Ref", "Division", "Service", "What has to be true for us to advertise this",
+         "Why we parked it", "TRUE / FALSE", "Your note"]
 for i, t in enumerate(heads, start=1):
     c = ws.cell(HROW, i, t)
     c.font = Font(name=F, size=9, bold=True, color="FFFFFF"); c.fill = fill(HEAD_BG)
@@ -311,46 +367,80 @@ ws.add_data_validation(dv)
 
 r = HROW + 1
 first_data = r
+n_hold = 0
 for no, div, items in SERVICES:
+    held = [(n, t) for n, t in items if n in HOLD]
+    if not held:
+        continue
     dr = ws.cell(r, 1, no); dr.font = Font(name=F, size=10, bold=True, color=RED)
     dr.fill = fill(BAND_BG); dr.alignment = ctr; dr.border = box
     dc = ws.cell(r, 2, div); dc.font = Font(name=F, size=10, bold=True)
     dc.fill = fill(BAND_BG); dc.alignment = wrapc; dc.border = box
-    for col in range(3, 7):
+    for col in range(3, 8):
         cc = ws.cell(r, col); cc.fill = fill(BAND_BG); cc.border = box
-    ws.cell(r, 3, f"{len(items)} services").font = smal
+    ws.cell(r, 3, f"{len(held)} parked").font = smal
     ws.row_dimensions[r].height = 20
     r += 1
-    for i, (name, truth) in enumerate(items, start=1):
+    for i, (name, truth) in enumerate(held, start=1):
+        n_hold += 1
+        g = HOLD[name]
         ws.cell(r, 1, f"{no}.{i}").font = smal
         ws.cell(r, 1).alignment = ctr; ws.cell(r, 1).border = box
         ws.cell(r, 2).border = box
         c = ws.cell(r, 3, name); c.font = bold; c.alignment = wrap; c.border = box
         c = ws.cell(r, 4, truth); c.font = base; c.alignment = wrap; c.border = box
-        c = ws.cell(r, 5); c.fill = fill(FILL_IN); c.alignment = ctr; c.border = box
-        c.font = Font(name=F, size=10, bold=True)
-        dv.add(c)
-        c = ws.cell(r, 6); c.fill = fill(FILL_IN); c.alignment = wrap; c.border = box; c.font = base
+        c = ws.cell(r, 5, f"{g} — {GROUP[g]}"); c.font = smal; c.alignment = wrap; c.border = box
+        c = ws.cell(r, 6); c.fill = fill(FILL_IN); c.alignment = ctr; c.border = box
+        c.font = Font(name=F, size=10, bold=True); dv.add(c)
+        c = ws.cell(r, 7); c.fill = fill(FILL_IN); c.alignment = wrap; c.border = box; c.font = base
         ws.row_dimensions[r].height = 34
         r += 1
 last_data = r - 1
 
-# progress summary (real formulas)
 r += 1
 ws.cell(r, 3, "Progress").font = sect
 ws.cell(r, 4, "Answered").font = bold
-ws.cell(r, 5, f'=COUNTIF(E{first_data}:E{last_data},"TRUE")+COUNTIF(E{first_data}:E{last_data},"FALSE")'
-              f'+COUNTIF(E{first_data}:E{last_data},"NEEDS REWORDING")').font = bold
-ws.cell(r, 6, f"of {sum(len(it) for _, _, it in SERVICES)} services").font = smal
+ws.cell(r, 6, f'=COUNTIF(F{first_data}:F{last_data},"TRUE")+COUNTIF(F{first_data}:F{last_data},"FALSE")'
+              f'+COUNTIF(F{first_data}:F{last_data},"NEEDS REWORDING")').font = bold
+ws.cell(r, 7, f"of {n_hold} parked services").font = smal
 r += 1
-ws.cell(r, 4, "Marked TRUE").font = base
-ws.cell(r, 5, f'=COUNTIF(E{first_data}:E{last_data},"TRUE")').font = base
+ws.cell(r, 4, "TRUE — we will put these back").font = base
+ws.cell(r, 6, f'=COUNTIF(F{first_data}:F{last_data},"TRUE")').font = base
 r += 1
-ws.cell(r, 4, "Marked FALSE — will be removed").font = base
-ws.cell(r, 5, f'=COUNTIF(E{first_data}:E{last_data},"FALSE")').font = base
-r += 1
-ws.cell(r, 4, "Needs rewording").font = base
-ws.cell(r, 5, f'=COUNTIF(E{first_data}:E{last_data},"NEEDS REWORDING")').font = base
+ws.cell(r, 4, "FALSE — these stay off").font = base
+ws.cell(r, 6, f'=COUNTIF(F{first_data}:F{last_data},"FALSE")').font = base
+
+# ---------------- Sheet 3: Services now live ----------------
+ws = wb.create_sheet("Services now live")
+banner(ws, "What your website says today",
+       "Taken straight from your business profile. Please check nothing here is wrong.", 3)
+for col, w in zip("ABC", (26, 52, 20)):
+    ws.column_dimensions[col].width = w
+HROW = 4
+for i, t in enumerate(["Division", "Service", "Correct?"], start=1):
+    c = ws.cell(HROW, i, t); c.font = Font(name=F, size=9, bold=True, color="FFFFFF")
+    c.fill = fill(HEAD_BG); c.alignment = wrapc; c.border = box
+ws.row_dimensions[HROW].height = 24
+ws.freeze_panes = "A5"
+
+dv3 = DataValidation(type="list", formula1='"YES,NO"', allow_blank=True, showDropDown=False)
+ws.add_data_validation(dv3)
+
+r = HROW + 1
+for div, items in LIVE:
+    c = ws.cell(r, 1, div); c.font = Font(name=F, size=10, bold=True, color=RED)
+    c.fill = fill(BAND_BG); c.alignment = wrapc; c.border = box
+    for col in (2, 3):
+        cc = ws.cell(r, col); cc.fill = fill(BAND_BG); cc.border = box
+    ws.cell(r, 2, f"{len(items)} live").font = smal
+    r += 1
+    for name in items:
+        ws.cell(r, 1).border = box
+        c = ws.cell(r, 2, name); c.font = base; c.alignment = wrap; c.border = box
+        c = ws.cell(r, 3); c.fill = fill(FILL_IN); c.alignment = ctr; c.border = box
+        c.font = Font(name=F, size=10, bold=True); dv3.add(c)
+        ws.row_dimensions[r].height = 22
+        r += 1
 
 # ---------------- Sheet 3: Company details ----------------
 ws = wb.create_sheet("Company details")

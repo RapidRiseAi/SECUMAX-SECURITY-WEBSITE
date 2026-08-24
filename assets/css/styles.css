@@ -86,7 +86,7 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
   color:var(--red);font-weight:700;margin-bottom:14px;
   display:inline-flex;align-items:center;gap:12px;
 }
-.eyebrow::before{content:"";width:28px;height:2px;background:var(--red)}
+/* no leading rule: eyebrows are the letterspaced label alone */
 
 .section__head{text-align:center;max-width:680px;margin:0 auto clamp(38px,5.5vw,66px)}
 .section__head--left{text-align:left;margin-inline:0}

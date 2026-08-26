@@ -1,130 +1,78 @@
-# INTEGRI Forensic and Protection Services — Website
+# Greyman Protection
 
-Marketing site for **INTEGRI Forensic and Protection Services**, a PSIRA-registered South
-African firm covering investigation, forensics, polygraph examination, security, protection,
-guarding and specialised services.
+Static marketing site for Greyman Protection, a specialist security, protection
+and investigative company in South Africa.
 
-Static HTML/CSS/JS. No build step, no framework, no runtime dependencies.
+No framework, no build step for the browser: the deployable output is the repo
+root. HTML, one stylesheet, one script.
 
----
-
-## Structure
+## Layout
 
 ```
-index.html              # Home
-about.html              # About INTEGRI
-contact.html            # Contact + enquiry form
-services/
-  index.html            # Divisions hub
-  investigation.html    # 01
-  forensic.html         # 02
-  polygraph.html        # 03
-  security.html         # 04
-  protection.html       # 05
-  guarding.html         # 06
-  specialized.html      # 07
-assets/
-  css/styles.css        # complete design system
-  js/main.js            # interactions (vanilla JS)
-  img/integri-crest.png # brand crest (768px)
-  img/favicon-*.png     # 32 / 192 / 512 icon set
-  img/apple-touch-icon.png
-  img/og-image.png      # 1200x630 link-preview card
-  brand/                # master logo artwork (source, not shipped)
-BRAND.md                # build contract — read before editing anything
-CLIENT-PACK.md          # for the client: 56 services to confirm + documents needed
-BUILD-STATUS.md         # for the team: what's done, blocked and queued
-tools/use-real-logo.sh  # swap the placeholder crest for the real artwork
+index.html  about.html  contact.html      root pages
+services/                                 hub + 6 division pages
+assets/css/styles.css                     the whole design system
+assets/js/main.js                         all interaction
+assets/img/                               favicons, OG card, logo
+assets/brand/                             master artwork, not shipped to the page
+tools/                                    generators and the validator
+BRAND.md                                  the contract; read it before changing anything
 ```
 
-**This site is not ready to go public.** `BRAND.md` §1 carries a publication gate covering
-three unresolved items: PSIRA registration status (asserted in 79 places but not yet confirmed),
-director titles that contradict the CIPC record, and 56 sub-services drafted from industry norms
-rather than supplied by the client. `CLIENT-PACK.md` is what goes to the client;
-`BUILD-STATUS.md` is the internal view.
+## The pages are generated
 
-**`BRAND.md` is the source of truth.** It defines the colour tokens, typography, the exact
-contact details, the seven divisions and their sub-services, the CSS class catalogue, and the
-rules for adding a page. Read it before making changes.
+Ten pages share a header, mobile drawer, icon sprite, footer, action bar and
+to-top button. That chrome is emitted from one source, so **do not hand-edit the
+HTML**: the next regenerate overwrites it. Edit the generator instead.
 
----
+```bash
+python3 tools/build-brand-assets.py   # logo, favicons, OG card, from the master logo
+python3 tools/build-site.py           # all 10 pages from the taxonomy
+python3 tools/validate.py             # must be green before pushing
+```
 
-## Design
+Content and taxonomy live in `DIVISIONS`, `WHY`, `STEPS` and `CLIENTS` at the top
+of `tools/build-site.py`.
 
-| | |
-|---|---|
-| Palette | Black `#000000` · Red `#E01B24` · White |
-| Display type | Chakra Petch |
-| Body type | Barlow |
-| Labels | Barlow Condensed, uppercase, letterspaced |
-
-The site is photography-free by design. Visual weight comes from the SVG crest, red gradient
-washes, a technical grid overlay and iconography — so it loads fast and has no image
-licensing exposure. Every page shares one inline SVG icon sprite.
-
-Motion (scroll reveals, hero rise, marquee, counters) is disabled automatically under
-`prefers-reduced-motion`.
-
----
-
-## Running locally
+## Local preview
 
 ```bash
 python3 -m http.server 8080
 # http://localhost:8080
 ```
 
-Opening `index.html` from the filesystem also works — all paths are relative.
+Note that the production host serves extensionless URLs (`/contact`, not
+`/contact.html`) and redirects the `.html` form away. Internal links keep the
+`.html` suffix on purpose so the site also works on a plain file server and in
+local dev; only the absolute self-URLs (`rel="canonical"`, `og:url`) use the
+extensionless form, because those have to match what the host actually serves.
+
+## What the validator checks
+
+`tools/validate.py` is not decoration. It has caught a dead contact mailbox, a
+broken link set on the services hub, and an accessibility violation propagated
+across every page. It fails the build on:
+
+- broken internal links, sprite `<use>` ids with no `<symbol>`, CSS classes used
+  but never defined
+- wrong relative prefixes (`assets/` at the root, `../assets/` under `services/`)
+- more or fewer than one `<h1>`, inline `<style>`, stray inline styles
+- leftover branding from either previous brand, and the old red palette tokens
+- **claims with no paperwork behind them**: PSIRA, a company registration number,
+  `24/7`, fabricated volumes or success rates
+- any email or phone number outside the approved set
+- em dashes, which the site does not use
+- canonicals or `og:url` ending in `.html`, which the host redirects away
 
 ## Deployment
 
-Publish the repository root to any static host (Netlify, Vercel, Cloudflare Pages,
-GitHub Pages). No build command; the output directory is the repo root.
+Publish the repo root to any static host. No build command. The host must serve
+extensionless URLs, which Cloudflare, Vercel, Netlify and GitHub Pages do by
+default; plain nginx needs `try_files $uri $uri.html`.
 
----
+## Before this goes public
 
-## Things to know before you edit
-
-**The logo is the client's real artwork.** `assets/brand/integri-crest-master.png` is the
-supplied 4000x4000 transparent original and is the source of truth. Everything under
-`assets/img/` is generated from it — trimmed to content, padded square, and quantised to a
-64-colour palette (41 KB rather than 415 KB, with no visible difference on a mark this flat).
-If the artwork is ever reissued, replace the master and regenerate rather than editing the
-derived files by hand.
-
-`tools/use-real-logo.sh` remains for a straight one-file swap, but the generated set —
-favicon sizes, apple-touch-icon, OG card — is the better path.
-
-**The enquiry form has no backend.** It validates in the browser and then hands off to the
-visitor's own mail client via `mailto:`, so nothing passes through a third party — but it
-also means there is no delivery receipt and no submission log. To capture submissions
-server-side, point the `<form>` at a form endpoint (Formspree, Basin, Netlify Forms) or a
-serverless function, and remove the `mailto:` branch in `assets/js/main.js`.
-
-**Claims on this site are deliberately limited.** The only accreditation claims made anywhere
-are *PSIRA Registered & Compliant* and *Accredited Firearm Training*, because those are the
-only ones supplied. There are no client counts, success rates, years-in-business figures,
-staff numbers, response-time guarantees or testimonials. If you add any, make sure they are
-true and substantiated — see the fabrication ban in `BRAND.md` §1.
-
-**Confirmed and on the site:** registered name *INTEGRI Forensic Services (Pty) Ltd* and CIPC
-number *2026/561988/07*, both in the footer of every page.
-
-**Not yet supplied, and therefore absent:** PSIRA registration number, firearm-training
-accreditation number, VAT number, business hours beyond "24/7", and social media accounts.
-
-**Deliberately withheld:** the registered office address is also a director's residential
-address, so it is not published — that is the client's call to make, not ours. The director's
-ID number is not recorded in this repository at all.
-
----
-
-## Adding a page
-
-1. Copy the closest existing page (a service page, or `about.html` for a root-level page).
-2. Fix the relative prefix: root pages use `assets/…`, pages in `services/` use `../assets/…`.
-   Icon sprite references are always bare fragments — `<use href="#i-forensic"/>` — never prefixed.
-3. Update the `<head>`: title, description, canonical, `og:` tags.
-4. Move the `is-active` class onto the right nav item, in both the desktop nav and the mobile drawer.
-5. Use only classes from the catalogue in `BRAND.md` §8. If you genuinely need a new component,
-   add it to `styles.css` and document it there.
+See BRAND.md §6 and §7. In short: the site currently makes **no PSIRA claim and
+no company registration claim**, because the company profile supports neither.
+Both were on the previous brand's site and neither transfers. The client needs to
+supply the certificates before those go back on.

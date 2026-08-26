@@ -1,5 +1,5 @@
 /* =========================================================
-   INTEGRI Forensic and Protection Services: interactions
+   Greyman Protection: interactions
    Vanilla JS, no dependencies. Shared by every page.
    FROZEN FILE: see BRAND.md §5
    ========================================================= */
@@ -173,11 +173,11 @@
                     (service ? '\nService: ' + service : '') +
                     '\n\n' + message;
 
-      window.location.href = 'mailto:ops@integriforensicservices.com'
+      window.location.href = 'mailto:ops@greymanprotection.co.za'
         + '?subject=' + encodeURIComponent(subject)
         + '&body='    + encodeURIComponent(body);
 
-      note.textContent = 'Opening your email app. If nothing happens, write to us directly at ops@integriforensicservices.com';
+      note.textContent = 'Opening your email app. If nothing happens, write to us directly at ops@greymanprotection.co.za';
       note.classList.add('ok');
       form.reset();
     });

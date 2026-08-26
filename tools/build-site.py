@@ -1,0 +1,1030 @@
+#!/usr/bin/env python3
+"""Generate every page of the Greyman Protection site from one taxonomy.
+
+    python3 tools/build-site.py
+
+Ten pages share a header, mobile drawer, icon sprite, footer, action bar and
+to-top button. Hand-editing that chrome across ten files is how the last build
+ended up with an empty <h4> on every page, so it is emitted from one source
+here and the pages carry only their own content.
+
+EVERY claim below traces to the client's company profile. Nothing about
+volumes, years, headcount, response times, certifications or accreditations is
+invented. In particular this site makes NO PSIRA claim and NO company
+registration claim: the Greyman profile asserts neither, and the previous
+INTEGRI entity's registration does not transfer to a different trading name.
+Add them only when the client supplies the numbers.
+"""
+import os
+import re
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# --- the one place the domain lives; the client is moving it later ----------
+DOMAIN = "https://www.integriforensicservices.com"
+BRAND = "Greyman Protection"
+TAGLINE = "SECURITY &middot; PROTECTION &middot; INTELLIGENCE &middot; CONTROL"
+EMAIL = "ops@greymanprotection.co.za"
+ADDRESS = "466 Karel Trichardt Street, Mountainview, Pretoria"
+DIRECTORS = [
+    ("Etienne", "Director", "+27 71 118 3257", "27711183257"),
+    ("Jacques", "Director", "+27 67 161 2570", "27671612570"),
+]
+
+# ---------------------------------------------------------------------------
+# Taxonomy: the six divisions, verbatim in substance from the company profile.
+# ---------------------------------------------------------------------------
+DIVISIONS = [
+    dict(
+        slug="investigations", name="Special Investigations", short="Investigations",
+        icon="i-investigation",
+        blurb="Track and trace, vetting, polygraphs, criminal record checks, extortion and kidnap and ransom support.",
+        headline=("Decisions are only as good as", "the facts behind them"),
+        intro="Where there is uncertainty, suspected wrongdoing or a person who must be "
+              "found, we establish what is actually true: discreetly, methodically and in "
+              "a form you can act on.",
+        services=[
+            ("Track and Trace", "i-eye",
+             "Locating individuals or establishing whereabouts through a structured investigative approach."),
+            ("Vetting", "i-doc",
+             "Background and integrity screening of employees, contractors and partners before trust is extended."),
+            ("Polygraph Services", "i-polygraph",
+             "Polygraph examinations that support investigations and internal processes where more information is required."),
+            ("Criminal Record Checks", "i-lock-file",
+             "Additional certainty when evaluating prospective employees, contractors or anyone entering a position of trust."),
+            ("Extortion Cases", "i-shield-check",
+             "Careful handling of extortion pressure: gathering relevant information and supporting a measured security response."),
+            ("Evictions", "i-scale",
+             "Security support for eviction operations requiring planning, controlled execution and protection of everyone involved."),
+            ("Kidnap and Ransom", "i-protection",
+             "Kidnap and ransom situations demand discretion, controlled decision-making and a clear understanding of the risks. "
+             "We provide specialist investigative and security support to clients and families through the most sensitive "
+             "circumstances they will ever face."),
+        ],
+    ),
+    dict(
+        slug="asset-protection", name="Asset Protection", short="Asset Protection",
+        icon="i-asset",
+        blurb="Bullion runs and high-value assets in transit, planned around exposure points.",
+        headline=("High-value movement is", "a plan, not a vehicle"),
+        intro="Where theft, interception or loss would be significant, we plan the movement "
+              "itself: route, timing, exposure points and the protection required from "
+              "origin to destination.",
+        services=[
+            ("Bullion Runs", "i-asset",
+             "Controlled transportation of bullion and exceptionally valuable commodities, with disciplined execution and constant situational awareness."),
+            ("High-Value Assets in Transit", "i-lock-file",
+             "Protection adapted to the asset, route, operating environment and assessed level of risk, overt or low-profile as required."),
+        ],
+    ),
+    dict(
+        slug="close-protection", name="Executive Close Protection", short="Close Protection",
+        icon="i-protection",
+        blurb="Discreet executive and VIP protection, event security and security-trained drivers.",
+        headline=("Protection that does", "not interrupt the day"),
+        intro="Effective close protection is felt by the threat, not by the client. Our "
+              "teams work on preparation and awareness so executives, VIPs and at-risk "
+              "individuals carry on with meetings, travel and family life.",
+        services=[
+            ("Corporate Close Protection", "i-protection",
+             "Dedicated protection for executives and key individuals during business activity, travel and movement between locations."),
+            ("Special Event Security", "i-users",
+             "Access control and personal protection for events involving executives, VIPs and invited guests."),
+            ("Secure Drivers", "i-arrow-r",
+             "Drivers who bring route awareness and risk thinking to every journey: transport with security built in."),
+        ],
+    ),
+    dict(
+        slug="mining-security", name="Mining Security", short="Mining Security",
+        icon="i-specialized",
+        blurb="Illegal mining prevention, unrest control, dedicated searches and incident investigation.",
+        headline=("Large sites, valuable material,", "competing interests"),
+        intro="Mining environments combine open ground, high-value material, heavy "
+              "equipment, contractors and surrounding communities. That mix produces risk "
+              "that ordinary guarding does not answer. Our teams work to protect people, "
+              "assets and, critically, operational continuity.",
+        services=[
+            ("Illegal Mining Prevention Teams", "i-specialized",
+             "Dedicated teams that identify, deter and respond to illegal mining activity on and around the operation."),
+            ("Riot and Civil Unrest Control", "i-users",
+             "Support during unrest, demonstrations and disturbances: holding control, limiting escalation and protecting people and infrastructure."),
+            ("Dedicated Searches", "i-investigation",
+             "Structured searches of areas, buildings, vehicles and other environments where a focused response is required."),
+            ("Incident Investigations", "i-doc",
+             "Theft, suspicious activity and internal security concerns investigated so management can act on reliable information."),
+            ("Bullion Runs", "i-asset",
+             "Movement of bullion and other high-value mining commodities, coordinated with the operation's own procedures and shift patterns."),
+        ],
+        note="Downtime, stolen material and unrest cost more than the security that "
+             "prevents them. Our mining work is measured on production days protected, "
+             "not on hours billed.",
+    ),
+    dict(
+        slug="guarding", name="Guarding and Site Security", short="Guarding",
+        icon="i-guarding",
+        blurb="Controlled access, patrols and a professional presence on sites that carry real risk.",
+        headline=("A presence that is", "actually watching"),
+        intro="Guarding is only worth what the people doing it notice. Controlled access, "
+              "patrols and a professional presence on sites that carry real risk, with "
+              "teams held to the same standard of awareness and conduct as the rest of "
+              "our work.",
+        services=[
+            ("Controlled Access", "i-security",
+             "Managing who enters and leaves a site, and keeping a record that means something afterwards."),
+            ("Patrols", "i-eye",
+             "Scheduled and irregular patrols that cover a site properly rather than following a predictable pattern."),
+            ("Professional Presence", "i-guarding",
+             "Officers deployed to sites that carry real risk, briefed on the environment and on what to do when it changes."),
+        ],
+    ),
+    dict(
+        slug="training", name="Training", short="Training",
+        icon="i-target",
+        blurb="Corporate, firearm, riot control and security training for personnel and organisations.",
+        headline=("Capability you keep", "after we leave"),
+        intro="Security improves permanently when your own people recognise risk, respond "
+              "correctly and act with confidence. Our training is practical, "
+              "scenario-driven and built for the environment the client actually operates in.",
+        services=[
+            ("Corporate Training", "i-users",
+             "Security awareness adapted to the risks and responsibilities of corporate personnel."),
+            ("Firearm Training", "i-target",
+             "Safe, responsible and competent firearm handling, taught to a measurable standard."),
+            ("Riot Control Training", "i-shield-check",
+             "Crowd management and unrest response for personnel who work in high-pressure environments."),
+            ("Security Training", "i-guarding",
+             "Discipline, procedure and operational capability for security teams already on the ground."),
+        ],
+        extras=[
+            ("Delivery", "On your site or ours, scheduled around shifts and operational demands."),
+            ("Group size", "Small groups, so instruction stays hands-on and every candidate is assessed."),
+            ("Outcome", "Written feedback on performance, gaps and what to reinforce next."),
+        ],
+    ),
+]
+
+WHY = [
+    ("The solution is built around your risk",
+     "No two mandates are identical, so we do not sell a standard package. We establish "
+     "what needs protecting, what the realistic threats are and what outcome you need, "
+     "then match people and measures to that, and nothing more."),
+    ("Discretion is the service",
+     "Executives, investigations, internal concerns and valuable assets all carry "
+     "reputational exposure. Information is compartmentalised, teams are briefed on a "
+     "need-to-know basis, and our presence is calibrated to draw as little attention as "
+     "the situation allows."),
+    ("Prevention before reaction",
+     "The best outcome is the incident that never happens. Route planning, vulnerability "
+     "assessment, environment study and early threat recognition remove exposure before a "
+     "situation develops, which is also the cheapest security you will ever buy."),
+    ("Conduct that holds up under pressure",
+     "When officers are deployed, their behaviour is your brand. We hold our teams to "
+     "discipline, situational awareness, controlled escalation and a professional presence "
+     "appropriate to the environment: boardroom, site or crowd."),
+    ("One partner across every requirement",
+     "An investigation often exposes the need for close protection. A mine may need "
+     "prevention teams, investigations and training at once. Because these capabilities sit "
+     "in one company, findings move straight into action instead of being handed between "
+     "suppliers."),
+]
+
+STEPS = [
+    ("Understand the requirement",
+     "We establish what the client needs, the environment involved and the circumstances surrounding the situation."),
+    ("Assess the risk",
+     "Threats, vulnerabilities and operational constraints are evaluated before any response is proposed."),
+    ("Plan the operation",
+     "Personnel, movements, equipment and security measures are coordinated against the assignment, with contingencies built in."),
+    ("Execute professionally",
+     "The operation runs with the focus on protecting the client, holding control and achieving the required objective."),
+    ("Adapt when conditions change",
+     "Security situations are rarely static. When circumstances shift, the response shifts with them, and the client is told."),
+]
+
+CLIENTS = ["Private individuals", "Corporate executives", "Business owners",
+           "Companies and organisations", "Mining operations", "High-value asset owners",
+           "Event organisers", "Legal and investigative mandates",
+           "Organisations needing training"]
+
+SPRITE = '''  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="i-investigation" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/><path d="M8.6 11a2.4 2.4 0 0 1 2.4-2.4"/></symbol>
+    <symbol id="i-asset" viewBox="0 0 24 24"><rect x="2.6" y="6.4" width="11.6" height="10.4" rx="1.6"/><path d="M14.2 9.4h3.4l3 3.2v4.2h-6.4"/><circle cx="7" cy="19" r="1.8"/><circle cx="17.2" cy="19" r="1.8"/><path d="M8.4 10.4v3.4"/></symbol>
+    <symbol id="i-polygraph" viewBox="0 0 24 24"><path d="M2 12h3.5l2.5-7 4 14 2.5-7H22"/></symbol>
+    <symbol id="i-security" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.4" r="1.4"/></symbol>
+    <symbol id="i-protection" viewBox="0 0 24 24"><path d="M12 2.4l7.4 3.2v5.7c0 4.8-3.1 8.3-7.4 9.9-4.3-1.6-7.4-5.1-7.4-9.9V5.6L12 2.4z"/><circle cx="12" cy="10" r="2.1"/><path d="M8.4 16.4a4 4 0 0 1 7.2 0"/></symbol>
+    <symbol id="i-guarding" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.6 20a6.4 6.4 0 0 1 12.8 0"/><path d="M16.2 5.3a3.2 3.2 0 0 1 0 5.4"/><path d="M17.6 14.3A6.4 6.4 0 0 1 21.4 20"/></symbol>
+    <symbol id="i-specialized" viewBox="0 0 24 24"><path d="M3.6 16a8.4 8.4 0 0 1 16.8 0"/><path d="M3.6 16v1a3 3 0 0 0 3 3h1.4"/><path d="M20.4 16v1a3 3 0 0 1-3 3H16"/><path d="M8 20l.9 1.6"/><path d="M16 20l-.9 1.6"/><path d="M8.5 11.4h4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3.2 6.4L12 12.6l8.8-6.2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M7 3.5h-3a1 1 0 0 0-1 1A16.5 16.5 0 0 0 19.5 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1 11 11 0 0 1-3.5-.6 1 1 0 0 0-1 .25l-1.6 1.6a15 15 0 0 1-6.15-6.15l1.6-1.6a1 1 0 0 0 .25-1A11 11 0 0 1 8 4.5a1 1 0 0 0-1-1z"/></symbol>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.7 7.4L3.5 20.5l1.5-4.2A8.5 8.5 0 1 1 20.5 11.7z"/><path d="M9 9.4c.2-.5.5-.5.8-.5h.5l1 2.2-.7.8a6.2 6.2 0 0 0 2.9 2.5l.8-.8 2 1v.6c-.2.6-.9 1-1.6 1a8.6 8.6 0 0 1-5.9-5.7c-.1-.4 0-.8.2-1.1z"/></symbol>
+    <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 2.4l7.4 3.2v5.7c0 4.8-3.1 8.3-7.4 9.9-4.3-1.6-7.4-5.1-7.4-9.9V5.6L12 2.4z"/><path d="M8.7 12l2.3 2.3 4.3-4.5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.4v3.2M12 19.4v3.2M1.4 12h3.2M19.4 12h3.2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 6.8V12l3.2 2"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2"/><path d="M12 3.4c2.3 2.4 3.5 5.4 3.5 8.6S14.3 18.2 12 20.6c-2.3-2.4-3.5-5.4-3.5-8.6S9.7 5.8 12 3.4z"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 16.5h4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.7-6.4 10-6.4S22 12 22 12s-3.7 6.4-10 6.4S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3.5v17"/><path d="M5 7.2h14"/><path d="M7.6 7.2L5 13.4h5.2L7.6 7.2z"/><path d="M16.4 7.2l-2.6 6.2H19l-2.6-6.2z"/><path d="M8 20.5h8"/></symbol>
+    <symbol id="i-lock-file" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M9.5 12.5v-1.2a2.5 2.5 0 0 1 5 0v1.2"/><rect x="8.4" y="12.5" width="7.2" height="5" rx="1"/></symbol>
+    <symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="9" cy="8.5" r="3.4"/><path d="M16.5 20a5 5 0 0 0-2-4"/><circle cx="17" cy="9.5" r="2.6"/></symbol>
+  </svg>'''
+
+ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+
+
+def ico(name, cls="ico"):
+    return f'<svg class="{cls}" aria-hidden="true"><use href="#{name}"/></svg>'
+
+
+# ---------------------------------------------------------------------------
+# Chrome. Class names are the existing design system's, verbatim: the
+# stylesheet is frozen (BRAND.md §5) so the markup adapts to it, never the
+# other way round.
+# ---------------------------------------------------------------------------
+def head(p, title, desc, canon):
+    return f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content="{desc}" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="canonical" href="{DOMAIN}{canon}" />
+
+  <meta property="og:title" content="{title}" />
+  <meta property="og:description" content="{desc}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{DOMAIN}{canon}" />
+  <meta property="og:image" content="{DOMAIN}/assets/img/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="{p}assets/img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{p}assets/img/favicon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{p}assets/img/apple-touch-icon.png" />
+  <link rel="manifest" href="{p}site.webmanifest" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{p}assets/css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+{SPRITE}
+
+'''
+
+
+def brand(p):
+    return (f'      <a href="{p}index.html" class="brand" aria-label="{BRAND} home page">\n'
+            f'        <img src="{p}assets/img/greyman-mark.png" alt="" class="brand__mark" width="42" height="42" />\n'
+            f'        <span class="brand__text">\n'
+            f'          <strong>GREYMAN</strong>\n'
+            f'          <em>Protection</em>\n'
+            f'        </span>\n'
+            f'      </a>')
+
+
+def header(p, active=""):
+    def a(href, label, key):
+        c = ' class="is-active"' if active == key else ""
+        return f'        <a href="{p}{href}"{c}>{label}</a>'
+    drops = "\n".join(
+        f'            <a class="nav-drop__link" role="menuitem" href="{p}services/{d["slug"]}.html">'
+        f'{ico(d["icon"])} {d["name"]}</a>' for d in DIVISIONS)
+    mm = []
+    home_cls = ' class="is-active"' if active == "home" else ""
+    mm.append(f'        <a href="{p}index.html"{home_cls} style="--i:0">'
+              f'<span class="mm__num">01</span> Home</a>')
+    mm.append(f'        <a href="{p}services/index.html" style="--i:1"><span class="mm__num">02</span> All Services</a>')
+    for i, d in enumerate(DIVISIONS):
+        mm.append(f'        <a href="{p}services/{d["slug"]}.html" style="--i:{i + 2}">'
+                  f'<span class="mm__num">{i + 3:02d}</span> {d["short"]}</a>')
+    mm.append(f'        <a href="{p}about.html" style="--i:{len(DIVISIONS) + 2}"><span class="mm__num">{len(DIVISIONS) + 3:02d}</span> About</a>')
+    mm.append(f'        <a href="{p}contact.html" style="--i:{len(DIVISIONS) + 3}"><span class="mm__num">{len(DIVISIONS) + 4:02d}</span> Contact</a>')
+
+    return f'''  <header class="site-header" id="siteHeader">
+    <div class="wrap header__inner">
+{brand(p)}
+
+      <nav class="nav-desktop" aria-label="Primary">
+{a("index.html", "Home", "home")}
+
+        <div class="nav-drop">
+          <button class="nav-drop__toggle" aria-expanded="false" aria-haspopup="true">
+            Services
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="nav-drop__panel" role="menu">
+{drops}
+            <a class="nav-drop__link" role="menuitem" href="{p}services/index.html">{ico("i-arrow-r")} All divisions</a>
+          </div>
+        </div>
+
+{a("about.html", "About", "about")}
+{a("contact.html", "Contact", "contact")}
+      </nav>
+
+      <div class="header__cta">
+        <a class="btn btn--blue btn--sm" href="mailto:{EMAIL}">
+          {ico("i-mail")}
+          Email us
+        </a>
+      </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu__panel">
+      <nav aria-label="Mobile">
+{chr(10).join(mm)}
+      </nav>
+      <div class="mobile-menu__foot">
+        <a class="btn btn--blue btn--block" href="mailto:{EMAIL}">Email us</a>
+        <p class="mm-mail">{EMAIL}</p>
+      </div>
+    </div>
+  </div>
+
+'''
+
+
+def footer(p):
+    left, right = DIVISIONS[:3], DIVISIONS[3:]
+    return f'''  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer__grid">
+        <div class="footer__brand">
+{brand(p)}
+          <p>Specialist security, protection and investigative services for individuals,
+             businesses, mining operations and organisations across South Africa.</p>
+        </div>
+
+        <div class="footer__col">
+          <h3>Investigation &amp; Assets</h3>
+          <div class="footer__links">
+{chr(10).join(f'            <a href="{p}services/{d["slug"]}.html">{d["short"]}</a>' for d in left)}
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h3>Protection &amp; Training</h3>
+          <div class="footer__links">
+{chr(10).join(f'            <a href="{p}services/{d["slug"]}.html">{d["short"]}</a>' for d in right)}
+            <a href="{p}services/index.html">All divisions</a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h3>Company</h3>
+          <div class="footer__links">
+            <a href="{p}about.html">About {BRAND}</a>
+            <a href="{p}contact.html">Contact</a>
+            <a href="mailto:{EMAIL}">{EMAIL}</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>&copy; <span data-year>2026</span> {BRAND}. All rights reserved.</span>
+        <span>{ADDRESS}</span>
+        <span>{TAGLINE}</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="action-bar">
+    <a class="is-primary" href="mailto:{EMAIL}">
+      {ico("i-mail")} Email us
+    </a>
+    <a href="{p}contact.html">
+      {ico("i-phone")} Contact
+    </a>
+  </div>
+
+  <button class="to-top" id="toTop" aria-label="Scroll back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <script src="{p}assets/js/main.js" defer></script>
+</body>
+</html>
+'''
+
+
+def cta_band(p):
+    return f'''    <section class="cta-band">
+      <div class="wrap cta-band__inner">
+        <h2 class="cta-band__title reveal">Tell us what you <span class="grad">need protected.</span></h2>
+        <div class="cta-band__copy reveal">
+          <p>The first conversation is with the people who will run the mandate.
+             Confidential, and no obligation.</p>
+          <div class="hero__actions">
+            <a class="btn btn--blue btn--lg" href="mailto:{EMAIL}">{ico("i-mail")} Email us</a>
+            <a class="btn btn--outline btn--lg" href="{p}contact.html">Contact page {ARROW}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+'''
+# ---------------------------------------------------------------------------
+# Pages
+# ---------------------------------------------------------------------------
+# Badges are constrained to claims the company profile actually supports.
+# There is no PSIRA badge and no "24/7" badge anywhere on this site: the
+# Greyman profile asserts neither, so neither can be published.
+BADGES = [("i-users", "Director-led"), ("i-lock-file", "Confidential"),
+          ("i-globe", "South Africa")]
+
+
+def badges(items=None):
+    return "\n".join(
+        f'          <span class="hero__badge">{ico(n)} {t}</span>'
+        for n, t in (items or BADGES))
+
+
+def svc_card(p, d, n):
+    """p is the href prefix to the division pages: "services/" at the root, "" in the hub."""
+    subs = "".join(f"<li>{s[0]}</li>" for s in d["services"][:4])
+    return f'''        <article class="svc-card reveal" style="--d:.{n}s">
+          <span class="svc-card__num">{n + 1:02d}</span>
+          <div class="svc-card__icon">{ico(d["icon"], "ico ico--lg")}</div>
+          <h3 class="svc-card__title">{d["name"]}</h3>
+          <p class="svc-card__copy">{d["blurb"]}</p>
+          <ul class="svc-card__list">{subs}</ul>
+          <a class="svc-card__link" href="{p}{d["slug"]}.html">Explore division {ARROW}</a>
+        </article>'''
+
+
+def why_blocks():
+    return "\n".join(f'''        <div class="step reveal" style="--d:.{i}s">
+          <span class="step__num">{i + 1:02d}</span>
+          <div class="step__copy">
+            <h3 class="step__title">{t}</h3>
+            <p>{b}</p>
+          </div>
+        </div>''' for i, (t, b) in enumerate(WHY))
+
+
+def step_blocks():
+    return "\n".join(f'''        <div class="step reveal" style="--d:.{i}s">
+          <span class="step__num">{i + 1:02d}</span>
+          <div class="step__copy">
+            <h3 class="step__title">{t}</h3>
+            <p>{b}</p>
+          </div>
+        </div>''' for i, (t, b) in enumerate(STEPS))
+
+
+# ---------------------------------------------------------------------------
+def page_home():
+    p = ""
+    cards = "\n".join(svc_card("services/", d, i) for i, d in enumerate(DIVISIONS))
+    marquee = "".join(
+        f"<span>{d['short']}</span><i>&#9670;</i>" for d in DIVISIONS) * 2
+    return head(p, f"{BRAND} | Security, Protection, Intelligence, Control",
+                "Specialist security, protection and investigative services in South Africa. "
+                "Close protection, asset protection, special investigations, mining security, "
+                "guarding and training.", "/") + header(p, "home") + f'''  <main id="main">
+
+    <section class="hero">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <img class="hero__crest" src="assets/img/greyman-logo.png" alt="" aria-hidden="true" width="1215" height="1615" />
+
+      <div class="wrap hero__inner">
+        <div class="hero__badges reveal">
+{badges()}
+        </div>
+
+        <h1 class="hero__title">
+          <span class="hero__line"><span class="hero__line-in" style="--d:.15s">Built around the risk,</span></span>
+          <span class="hero__line"><span class="hero__line-in grad" style="--d:.32s">not a package.</span></span>
+        </h1>
+
+        <p class="hero__lead reveal" style="--d:.60s">
+          {BRAND} is a specialist security, protection and investigative company serving
+          individuals, businesses, mining operations and organisations that need more than a
+          standard security presence. Protect people. Protect assets. Establish the facts.
+          Reduce risk.
+        </p>
+
+        <div class="hero__actions reveal" style="--d:.70s">
+          <a class="btn btn--blue btn--lg" href="mailto:{EMAIL}">
+            Start a confidential enquiry
+            {ARROW}
+          </a>
+          <a class="btn btn--outline btn--lg" href="services/index.html">View our divisions</a>
+        </div>
+
+        <p class="hero__mail reveal" style="--d:.80s">
+          Every enquiry is treated in confidence, <a href="mailto:{EMAIL}">{EMAIL}</a>
+        </p>
+      </div>
+    </section>
+
+    <div class="trust">
+      <div class="wrap trust__inner">
+        <div class="trust__item"><strong><span data-count="6">6</span></strong><span>Specialist divisions</span></div>
+        <div class="trust__item"><strong>Director</strong><span>Led on every mandate</span></div>
+        <div class="trust__item"><strong>SA</strong><span>South Africa</span></div>
+        <div class="trust__item"><strong>Discreet</strong><span>Compartmentalised by default</span></div>
+      </div>
+    </div>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        {marquee}
+      </div>
+    </div>
+
+    <section class="section section--alt" id="about">
+      <div class="wrap">
+        <div class="section__head section__head--left">
+          <span class="eyebrow">Who we are</span>
+          <h2 class="section__title reveal">Security built around the risk, <span class="grad">not a package.</span></h2>
+        </div>
+
+        <div class="detail">
+          <div class="detail__body prose reveal">
+            <p>A corporate executive moving between locations does not face the same risk as a
+               mining operation dealing with illegal activity. A bullion movement is not an
+               investigation. We treat them differently.</p>
+            <p>Every assignment starts with understanding the situation: what must be protected,
+               what can go wrong, and what outcome the client needs. Only then do we deploy the
+               people, resources and measures suited to it.</p>
+            <p>Directors are personally involved in every mandate. Clients deal with
+               decision-makers, not a call centre, and sensitive information stays inside a small,
+               accountable team.</p>
+          </div>
+
+          <aside class="detail__aside">
+            <div class="aside-card reveal">
+              <h3 class="aside-card__title">How we work</h3>
+              <div class="aside-card__row">{ico("i-target")} The solution is built around your risk, not a catalogue</div>
+              <div class="aside-card__row">{ico("i-lock-file")} Information compartmentalised, teams briefed need-to-know</div>
+              <div class="aside-card__row">{ico("i-eye")} Prevention before reaction, because the cheapest incident never happens</div>
+              <div class="aside-card__row">{ico("i-users")} Six capabilities in one company, so findings move straight into action</div>
+            </div>
+
+            <div class="aside-card reveal" style="--d:.1s">
+              <h3 class="aside-card__title">Talk to us</h3>
+              <div class="aside-card__row">{ico("i-mail")} <a href="mailto:{EMAIL}">{EMAIL}</a></div>
+              <div class="aside-card__row">{ico("i-globe")} {ADDRESS}</div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">Capabilities</span>
+          <h2 class="section__title reveal">Six divisions. <span class="grad">One accountable team.</span></h2>
+          <p class="section__sub reveal">An investigation often exposes the need for close protection.
+             A mine may need prevention teams, investigations and training at once. Because these
+             capabilities sit in one company, findings move straight into action.</p>
+        </div>
+
+        <div class="svc-grid">
+{cards}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">Why {BRAND}</span>
+          <h2 class="section__title reveal">Five reasons clients hand us <span class="grad">the difficult work.</span></h2>
+        </div>
+        <div class="step-list">
+{why_blocks()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">How we work</span>
+          <h2 class="section__title reveal">Five steps from first call <span class="grad">to standing guard.</span></h2>
+        </div>
+        <div class="step-list">
+{step_blocks()}
+        </div>
+      </div>
+    </section>
+
+{cta_band(p)}  </main>
+
+''' + footer(p)
+
+
+# ---------------------------------------------------------------------------
+def page_about():
+    p = ""
+    clients = "\n".join(
+        f'''          <div class="offer reveal" style="--d:.{i % 6}s">
+            <div class="offer__icon">{ico("i-shield-check")}</div>
+            <div class="offer__copy"><h3 class="offer__title">{c}</h3></div>
+          </div>''' for i, c in enumerate(CLIENTS))
+    return head(p, f"About | {BRAND}",
+                f"{BRAND} is a specialist security, protection and investigative company in "
+                "South Africa. Director-led mandates, compartmentalised information and a "
+                "response matched to the actual risk.", "/about") + header(p, "about") + f'''  <main id="main">
+
+    <section class="page-hero">
+      <div class="wrap page-hero__inner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <span aria-current="page">About</span>
+        </nav>
+
+        <span class="eyebrow">Who we are</span>
+        <h1 class="page-hero__title reveal">More than a <span class="grad">standard security presence.</span></h1>
+        <p class="page-hero__lead reveal" style="--d:.08s">
+          {BRAND} is a specialist security, protection and investigative company serving
+          individuals, businesses, mining operations and organisations that need more than a
+          standard security presence.
+        </p>
+
+        <div class="page-hero__meta reveal" style="--d:.16s">
+{badges()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="detail">
+          <div class="detail__body prose reveal">
+            <h2 class="section__title section__title--sm">Protect people. Protect assets. Establish the facts. Reduce risk.</h2>
+            <p>A corporate executive moving between locations does not face the same risk as a
+               mining operation dealing with illegal activity. A bullion movement is not an
+               investigation. We treat them differently.</p>
+            <p>Every assignment starts with understanding the situation: what must be protected,
+               what can go wrong, and what outcome the client needs. Only then do we deploy the
+               people, resources and measures suited to it.</p>
+            <p>Directors are personally involved in every mandate. Clients deal with
+               decision-makers, not a call centre, and sensitive information stays inside a small,
+               accountable team.</p>
+            <p>Real security is not someone standing nearby. It is knowing what to look for, what
+               could go wrong, how to reduce the risk and how to respond when the situation
+               changes. That is the standard {BRAND} works to, on an executive detail, a bullion
+               run, a serious investigation or a mine under pressure.</p>
+          </div>
+
+          <aside class="detail__aside">
+            <div class="aside-card reveal">
+              <h3 class="aside-card__title">Talk to us</h3>
+              <div class="aside-card__row">{ico("i-mail")} <a href="mailto:{EMAIL}">{EMAIL}</a></div>
+              <div class="aside-card__row">{ico("i-globe")} {ADDRESS}</div>
+              <a class="btn btn--blue btn--block" href="contact.html">Contact page</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">Why {BRAND}</span>
+          <h2 class="section__title reveal">Five reasons clients hand us <span class="grad">the difficult work.</span></h2>
+        </div>
+        <div class="step-list">
+{why_blocks()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">How we work</span>
+          <h2 class="section__title reveal">Five steps from first call <span class="grad">to standing guard.</span></h2>
+        </div>
+        <div class="step-list">
+{step_blocks()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="wrap">
+        <div class="section__head section__head--mid">
+          <span class="eyebrow">Who we work with</span>
+          <h2 class="section__title reveal">The mandates that <span class="grad">come to us.</span></h2>
+        </div>
+        <div class="offer-grid">
+{clients}
+        </div>
+      </div>
+    </section>
+
+{cta_band(p)}  </main>
+
+''' + footer(p)
+
+
+# ---------------------------------------------------------------------------
+def page_contact():
+    p = ""
+    dirs = "\n".join(f'''          <article class="dir-card reveal" style="--d:.{i}s">
+            <div class="dir-card__avatar">{ico("i-users", "ico ico--lg")}</div>
+            <h3 class="dir-card__name">{n}</h3>
+            <p class="dir-card__role">{role}</p>
+            <a class="dir-card__row" href="tel:+{digits}">{ico("i-phone")} {tel}</a>
+            <a class="dir-card__row" href="mailto:{EMAIL}">{ico("i-mail")} {EMAIL}</a>
+          </article>''' for i, (n, role, tel, digits) in enumerate(DIRECTORS))
+    opts = "\n".join(f'              <option>{d["name"]}</option>' for d in DIVISIONS)
+    return head(p, f"Contact | {BRAND}",
+                f"Contact {BRAND} in South Africa. Email is the preferred first contact and every "
+                "enquiry is confidential. Speak directly to a director.",
+                "/contact") + header(p, "contact") + f'''  <main id="main">
+
+    <section class="page-hero">
+      <div class="wrap page-hero__inner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <span aria-current="page">Contact</span>
+        </nav>
+
+        <span class="eyebrow">Contact</span>
+        <h1 class="page-hero__title reveal">Speak directly to <span class="grad">a director.</span></h1>
+        <p class="page-hero__lead reveal" style="--d:.08s">
+          Whether you need ongoing security support or help with one specific situation, the
+          first conversation is with the people who will run the mandate. Confidential, and no
+          obligation.
+        </p>
+
+        <div class="page-hero__meta reveal" style="--d:.16s">
+{badges()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="contact__grid">
+          <div class="contact-list reveal">
+            <a class="contact-item" href="mailto:{EMAIL}">
+              {ico("i-mail")}
+              <span>
+                <span class="contact-item__label">Email, preferred</span>
+                <span class="contact-item__value">{EMAIL}</span>
+              </span>
+            </a>
+{chr(10).join(f"""            <a class="contact-item" href="tel:+{digits}">
+              {ico("i-phone")}
+              <span>
+                <span class="contact-item__label">{n}, {role}</span>
+                <span class="contact-item__value">{tel}</span>
+              </span>
+            </a>""" for n, role, tel, digits in DIRECTORS)}
+            <div class="contact-item">
+              {ico("i-globe")}
+              <span>
+                <span class="contact-item__label">Office</span>
+                <span class="contact-item__value">{ADDRESS}</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="contact__form reveal" style="--d:.1s">
+            <h2 class="section__title section__title--sm">Send an enquiry</h2>
+            <p class="form__hint">Every enquiry is treated in confidence.</p>
+            <form id="contactForm" novalidate>
+              <div class="field">
+                <input type="text" id="name" name="name" placeholder=" " required />
+                <label for="name">Your name</label>
+              </div>
+              <div class="field">
+                <input type="email" id="email" name="email" placeholder=" " required />
+                <label for="email">Email address</label>
+              </div>
+              <div class="field">
+                <select id="service" name="service">
+                  <option value="">Which division?</option>
+{opts}
+                </select>
+              </div>
+              <div class="field">
+                <textarea id="message" name="message" rows="5" placeholder=" " required></textarea>
+                <label for="message">How can we help?</label>
+              </div>
+              <button type="submit" class="btn btn--blue btn--block btn--lg">Send enquiry</button>
+              <p class="form__note" id="formNote" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+
+        <div class="section__block">
+          <h2 class="section__title section__title--sm reveal">Our directors</h2>
+          <div class="dir-grid">
+{dirs}
+          </div>
+        </div>
+      </div>
+    </section>
+
+{cta_band(p)}  </main>
+
+''' + footer(p)
+
+
+# ---------------------------------------------------------------------------
+def page_services_index():
+    p = "../"
+    cards = "\n".join(svc_card("", d, i) for i, d in enumerate(DIVISIONS))
+    return head(p, f"Services | {BRAND}",
+                "Six specialist divisions: special investigations, asset protection, executive "
+                "close protection, mining security, guarding and site security, and training.",
+                "/services/") + header(p, "services") + f'''  <main id="main">
+
+    <section class="page-hero">
+      <div class="wrap page-hero__inner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="{p}index.html">Home</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <span aria-current="page">Services</span>
+        </nav>
+
+        <span class="eyebrow">Capabilities</span>
+        <h1 class="page-hero__title reveal">Six divisions. <span class="grad">One accountable team.</span></h1>
+        <p class="page-hero__lead reveal" style="--d:.08s">
+          An investigation often exposes the need for close protection. A mine may need
+          prevention teams, investigations and training at once. Because these capabilities sit
+          in one company, findings move straight into action instead of being handed between
+          suppliers.
+        </p>
+
+        <div class="page-hero__meta reveal" style="--d:.16s">
+{badges()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="svc-grid">
+{cards}
+        </div>
+      </div>
+    </section>
+
+{cta_band(p)}  </main>
+
+''' + footer(p)
+
+
+# ---------------------------------------------------------------------------
+def page_division(d, n):
+    p = "../"
+    offers = "\n".join(f'''          <article class="offer reveal" style="--d:.{i % 6}s">
+            <div class="offer__icon">{ico(icon)}</div>
+            <div class="offer__copy">
+              <h3 class="offer__title">{title}</h3>
+              <p>{body}</p>
+            </div>
+          </article>''' for i, (title, icon, body) in enumerate(d["services"]))
+
+    extra = ""
+    if d.get("extras"):
+        extra = f'''
+    <section class="section section--alt">
+      <div class="wrap">
+        <div class="offer-grid">
+{chr(10).join(f"""          <article class="offer reveal" style="--d:.{i}s">
+            <div class="offer__icon">{ico("i-doc")}</div>
+            <div class="offer__copy">
+              <h3 class="offer__title">{t}</h3>
+              <p>{b}</p>
+            </div>
+          </article>""" for i, (t, b) in enumerate(d["extras"]))}
+        </div>
+      </div>
+    </section>
+'''
+    note = ""
+    if d.get("note"):
+        note = f'''
+    <section class="section section--alt">
+      <div class="wrap">
+        <div class="aside-card reveal">
+          <h2 class="aside-card__title">Worth saying plainly</h2>
+          <p>{d["note"]}</p>
+        </div>
+      </div>
+    </section>
+'''
+
+    others = "\n".join(
+        f'            <a href="{o["slug"]}.html">{o["name"]}</a>'
+        for o in DIVISIONS if o["slug"] != d["slug"])
+
+    return head(p, f'{d["name"]} | {BRAND}', d["blurb"],
+                f'/services/{d["slug"]}') + header(p, "services") + f'''  <main id="main">
+
+    <section class="page-hero">
+      <div class="wrap page-hero__inner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="{p}index.html">Home</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <a href="index.html">Services</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <span aria-current="page">{d["name"]}</span>
+        </nav>
+
+        <span class="eyebrow">Division {n + 1:02d}</span>
+        <h1 class="page-hero__title reveal">{d["headline"][0]} <span class="grad">{d["headline"][1]}</span></h1>
+        <p class="page-hero__lead reveal" style="--d:.08s">{d["intro"]}</p>
+
+        <div class="page-hero__meta reveal" style="--d:.16s">
+{badges()}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section__head section__head--left">
+          <span class="eyebrow">What this division does</span>
+          <h2 class="section__title reveal">{d["name"]}</h2>
+        </div>
+        <div class="offer-grid">
+{offers}
+        </div>
+      </div>
+    </section>
+{note}{extra}
+    <section class="section">
+      <div class="wrap">
+        <div class="aside-card reveal">
+          <h2 class="aside-card__title">Other divisions</h2>
+          <div class="footer__links">
+{others}
+          </div>
+        </div>
+      </div>
+    </section>
+
+{cta_band(p)}  </main>
+
+''' + footer(p)
+
+
+# ---------------------------------------------------------------------------
+def main():
+    written = []
+
+    def w(relpath, html):
+        full = os.path.join(ROOT, relpath)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(html)
+        written.append((relpath, len(html)))
+
+    w("index.html", page_home())
+    w("about.html", page_about())
+    w("contact.html", page_contact())
+    w("services/index.html", page_services_index())
+    for i, d in enumerate(DIVISIONS):
+        w(f'services/{d["slug"]}.html', page_division(d, i))
+
+    # Retire the INTEGRI-era division pages.
+    for old in ("investigation", "forensic", "polygraph", "security",
+                "protection", "specialized"):
+        stale = os.path.join(ROOT, "services", f"{old}.html")
+        if os.path.exists(stale) and not any(
+                r == f"services/{old}.html" for r, _ in written):
+            os.remove(stale)
+            print(f"   removed stale page services/{old}.html")
+
+    print(f"Generated {len(written)} pages:")
+    for r, n in written:
+        print(f"   {r:38s} {n/1024:6.1f} KB")
+
+    # em dashes are banned site-wide; catch them at the source
+    bad = [r for r, _ in written
+           if "—" in open(os.path.join(ROOT, r), encoding="utf-8").read()]
+    if bad:
+        raise SystemExit("em dash emitted in: " + ", ".join(bad))
+
+
+if __name__ == "__main__":
+    main()

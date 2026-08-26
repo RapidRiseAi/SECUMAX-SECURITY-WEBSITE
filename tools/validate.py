@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the INTEGRI static site: links, sprite ids, CSS classes, brand hygiene."""
+"""Validate the Greyman Protection static site: links, sprite ids, CSS classes, brand hygiene."""
 import os, re, sys
 from html.parser import HTMLParser
 
@@ -114,21 +114,34 @@ for page in pages:
             errors.append(f"{P}: uses '../assets/' but is at the repo root")
 
     # ---- 7. brand hygiene: no leftovers, no fabrication ----
+    # The canonical host is still INTEGRI's until the client moves the domain,
+    # so strip absolute self-URLs before the brand sweep or every page reports
+    # a false leftover.
+    src_copy = src.replace("https://www.integriforensicservices.com", "https://SELF")
     for pat, msg in [
         (r"SECUMAX|secumax", "leftover SECUMAX branding"),
+        (r"\bINTEGRI\b(?!\w)|Integri(?!ty)", "leftover INTEGRI branding in copy"),
         (r"\bK9\b|\bK-9\b", "leftover K9 reference"),
         (r"anti-poach|Anti-Poach", "leftover anti-poaching reference"),
-        (r"#d4af37|#f3ca25|#066aab|\bgold\b", "leftover gold/blue brand token"),
+        (r"#d4af37|#f3ca25|#066aab|#E01B24|#FF303B|\bgold\b", "leftover pre-Greyman brand token"),
         (r"Abril Fatface|Space Grotesk", "leftover SECUMAX font"),
+        (r"btn--red|var\(--red", "leftover red palette token"),
+        # PSIRA and a company registration number are regulatory claims. The
+        # Greyman company profile asserts neither, and INTEGRI's registration
+        # does not carry over to a different trading name. Publishing either
+        # without the client's paperwork is a false claim, not a copy choice.
+        (r"PSIRA", "PSIRA claim with no supporting certificate on file"),
+        (r"\b\d{4}/\d{6}/\d{2}\b", "company registration number not verified for Greyman"),
+        (r"24/7", "availability claim the company profile does not make"),
         (r"\d+\+\s*(clients|cases|years|officers)", "fabricated volume claim"),
         (r"(?<![/\d])(19|20)\d{2}(?![/\d])", "possible fabricated year"),
         (r"\b\d{1,3}(\.\d+)?%\s*(accura|success|convict)", "fabricated success/accuracy rate"),
         (r"years of (combined )?experience", "fabricated experience claim"),
         (r"lorem ipsum", "placeholder text"),
-        (r"integriforensicandprotectionservices\.com", "superseded long domain — use integriforensicservices.com"),
+        (r"greymanprotection\.com\b", "profile says .com but the live mailbox is .co.za"),
     ]:
-        for m in re.finditer(pat, src, re.IGNORECASE):
-            ctx = src[max(0, m.start() - 45): m.end() + 45].replace("\n", " ")
+        for m in re.finditer(pat, src_copy, re.IGNORECASE):
+            ctx = src_copy[max(0, m.start() - 45): m.end() + 45].replace("\n", " ")
             # the footer copyright year is legitimate
             if "possible fabricated year" in msg and "data-year" in ctx:
                 continue
@@ -140,7 +153,7 @@ for page in pages:
         if digits and digits not in ("27711183257", "27671612570"):
             errors.append(f"{P}: unknown phone number -> {bad.strip()}")
     for mail in re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", src):
-        if mail != "ops@integriforensicservices.com":
+        if mail != "ops@greymanprotection.co.za":
             errors.append(f"{P}: unknown email address -> {mail}")
 
 # ---------- unreferenced assets ----------
@@ -166,8 +179,8 @@ for rel_path in ("assets/css/styles.css", "assets/js/main.js", "site.webmanifest
     if not os.path.exists(fp):
         continue
     body = open(fp, encoding="utf-8").read()
-    if "integriforensicandprotectionservices" in body:
-        errors.append(f"{rel_path}: superseded long domain — use integriforensicservices.com")
+    if "ops@integriforensicservices" in body:
+        errors.append(f"{rel_path}: superseded INTEGRI mailbox, use ops@greymanprotection.co.za")
     if "\u2014" in body:
         errors.append(f"{rel_path}: em dash present ({body.count(chr(8212))}) — the site is em-dash free")
 

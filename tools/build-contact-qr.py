@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the printable contact QR code for INTEGRI, offline.
+"""Build the printable contact QR code for Greyman Protection, offline.
 
     pip install segno pillow opencv-python-headless
     python3 tools/build-contact-qr.py
@@ -21,10 +21,14 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
+# The client is moving the domain. Set this to the FINAL domain before
+# generating anything that gets printed: a QR cannot be corrected after a
+# print run, and the artwork this produced for the previous brand was
+# deleted for exactly that reason.
 URL = "https://www.integriforensicservices.com/contact"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "brand-assets", "qr")
-CREST = os.path.join(ROOT, "assets", "img", "integri-crest.png")
+CREST = os.path.join(ROOT, "assets", "img", "greyman-mark.png")
 
 SCALE = 40      # px per module for the raster exports
 BORDER = 4      # quiet zone in modules, the spec minimum
@@ -43,17 +47,17 @@ def path(name):
 qr = segno.make(URL, error="h")
 print(f"QR version {qr.version}, {qr.symbol_size(scale=1, border=0)[0]} modules, ECC {qr.error.upper()}")
 
-qr.save(path("integri-contact-qr.svg"), scale=10, border=BORDER,
+qr.save(path("greyman-contact-qr.svg"), scale=10, border=BORDER,
         dark="#000000", light="#ffffff")
-written.append("integri-contact-qr.svg")
+written.append("greyman-contact-qr.svg")
 
-qr.save(path("integri-contact-qr.png"), scale=SCALE, border=BORDER,
+qr.save(path("greyman-contact-qr.png"), scale=SCALE, border=BORDER,
         dark="#000000", light="#ffffff")
-written.append("integri-contact-qr.png")
+written.append("greyman-contact-qr.png")
 
-qr.save(path("integri-contact-qr-black-transparent.png"), scale=SCALE, border=BORDER,
+qr.save(path("greyman-contact-qr-black-transparent.png"), scale=SCALE, border=BORDER,
         dark="#000000", light=None)
-written.append("integri-contact-qr-black-transparent.png")
+written.append("greyman-contact-qr-black-transparent.png")
 
 
 def rounded_panel(inner, pad_frac=0.06, radius_frac=0.06):
@@ -75,9 +79,9 @@ def rounded_panel(inner, pad_frac=0.06, radius_frac=0.06):
     return panel
 
 
-plain = Image.open(path("integri-contact-qr.png")).convert("RGBA")
-rounded_panel(plain).save(path("integri-contact-qr-on-white-panel.png"))
-written.append("integri-contact-qr-on-white-panel.png")
+plain = Image.open(path("greyman-contact-qr.png")).convert("RGBA")
+rounded_panel(plain).save(path("greyman-contact-qr-on-white-panel.png"))
+written.append("greyman-contact-qr-on-white-panel.png")
 
 if os.path.exists(CREST):
     branded = plain.copy()
@@ -97,8 +101,8 @@ if os.path.exists(CREST):
 
     branded.alpha_composite(box, ((branded.width - knock) // 2,
                                   (branded.height - knock) // 2))
-    branded.save(path("integri-contact-qr-branded.png"))
-    written.append("integri-contact-qr-branded.png")
+    branded.save(path("greyman-contact-qr-branded.png"))
+    written.append("greyman-contact-qr-branded.png")
 else:
     print(f"note: {CREST} missing, skipping the branded variant")
 

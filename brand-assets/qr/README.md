@@ -47,13 +47,29 @@ deprecate it, rate limit it, or start charging for it.
   confirm it returns the exact URL, then rescaled to simulated print sizes from
   30 mm down to 10 mm at 600 dpi and decoded again at each size.
 
-## Why /contact resolves
+## Why /contact is the right URL to print
 
-The repository has `contact.html` at the root, not a `contact/` directory.
-Netlify, Vercel, Cloudflare Pages and GitHub Pages map `/contact` to
-`contact.html` on their own. A plain nginx or Apache host does not, and would
-return 404 for the printed code.
+Checked against the live site rather than assumed. The production host serves
+extensionless URLs and redirects the `.html` form away:
 
-`contact/index.html` is a redirect stub that closes that gap, so `/contact`
-resolves on any host with no server configuration. Do not delete it while these
-cards are in circulation.
+```
+/contact        200  serves the page
+/contact.html   307  -> /contact
+/contact/       307  -> /contact
+```
+
+The same pattern holds for every page on the site. So `/contact` is not a
+convenience alias, it is the canonical URL, and `/contact.html` is the one that
+redirects. Printing `/contact` is correct.
+
+The repository still stores the file as `contact.html`, and internal links
+still point at `contact.html`, so the site keeps working on a plain file server
+and in local dev. Only the absolute URLs the site declares about itself
+(`rel="canonical"` and `og:url`) use the extensionless form, because those have
+to match what the host actually serves.
+
+**If the site is ever moved to a host that does not do extensionless URLs, the
+printed cards break.** Any replacement host must serve `contact.html` at
+`/contact`. That is one line of config on nginx (`try_files $uri $uri.html`) and
+the default on Netlify, Vercel, Cloudflare and GitHub Pages, but it is not
+automatic everywhere, so it belongs in the handover notes for whoever moves it.

@@ -34,6 +34,19 @@ def img_size(rel):
         return im.size
 
 
+def division_symbols():
+    """The client's own division icons, traced by tools/trace-division-icons.py.
+
+    Read at build time rather than pasted in, so re-tracing the artwork is the
+    only step needed to update them.
+    """
+    fp = os.path.join(ROOT, "tools", "_division-icons.svg")
+    if not os.path.exists(fp):
+        raise SystemExit("run tools/trace-division-icons.py first: "
+                         "_division-icons.svg is missing")
+    return open(fp, encoding="utf-8").read().rstrip("\n")
+
+
 MARK_W, MARK_H = img_size("assets/img/greyman-mark.png")
 LOCKUP_W, LOCKUP_H = img_size("assets/img/greyman-lockup.png")
 
@@ -54,7 +67,7 @@ DIRECTORS = [
 DIVISIONS = [
     dict(
         slug="investigations", name="Special Investigations", short="Investigations",
-        icon="i-investigation",
+        icon="d-investigations",
         blurb="Track and trace, vetting, polygraphs, criminal record checks, extortion and kidnap and ransom support.",
         headline=("Decisions are only as good as", "the facts behind them"),
         intro="Where there is uncertainty, suspected wrongdoing or a person who must be "
@@ -65,7 +78,7 @@ DIVISIONS = [
              "Locating individuals or establishing whereabouts through a structured investigative approach."),
             ("Vetting", "i-doc",
              "Background and integrity screening of employees, contractors and partners before trust is extended."),
-            ("Polygraph Services", "i-polygraph",
+            ("Polygraph Services", "d-polygraph",
              "Polygraph examinations that support investigations and internal processes where more information is required."),
             ("Criminal Record Checks", "i-lock-file",
              "Additional certainty when evaluating prospective employees, contractors or anyone entering a position of trust."),
@@ -81,7 +94,7 @@ DIVISIONS = [
     ),
     dict(
         slug="asset-protection", name="Asset Protection", short="Asset Protection",
-        icon="i-asset",
+        icon="d-asset",
         blurb="Bullion runs and high-value assets in transit, planned around exposure points.",
         headline=("High-value movement is", "a plan, not a vehicle"),
         intro="Where theft, interception or loss would be significant, we plan the movement "
@@ -96,7 +109,7 @@ DIVISIONS = [
     ),
     dict(
         slug="close-protection", name="Executive Close Protection", short="Close Protection",
-        icon="i-protection",
+        icon="d-close",
         blurb="Discreet executive and VIP protection, event security and security-trained drivers.",
         headline=("Protection that does", "not interrupt the day"),
         intro="Effective close protection is felt by the threat, not by the client. Our "
@@ -113,7 +126,7 @@ DIVISIONS = [
     ),
     dict(
         slug="mining-security", name="Mining Security", short="Mining Security",
-        icon="i-specialized",
+        icon="d-mining",
         blurb="Illegal mining prevention, unrest control, dedicated searches and incident investigation.",
         headline=("Large sites, valuable material,", "competing interests"),
         intro="Mining environments combine open ground, high-value material, heavy "
@@ -138,7 +151,7 @@ DIVISIONS = [
     ),
     dict(
         slug="guarding", name="Guarding and Site Security", short="Guarding",
-        icon="i-guarding",
+        icon="d-guarding",
         blurb="Controlled access, patrols and a professional presence on sites that carry real risk.",
         headline=("A presence that is", "actually watching"),
         intro="Guarding is only worth what the people doing it notice. Controlled access, "
@@ -156,7 +169,7 @@ DIVISIONS = [
     ),
     dict(
         slug="training", name="Training", short="Training",
-        icon="i-target",
+        icon="d-training",
         blurb="Corporate, firearm, riot control and security training for personnel and organisations.",
         headline=("Capability you keep", "after we leave"),
         intro="Security improves permanently when your own people recognise risk, respond "
@@ -244,7 +257,8 @@ SPRITE = '''  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden
     <symbol id="i-lock-file" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M9.5 12.5v-1.2a2.5 2.5 0 0 1 5 0v1.2"/><rect x="8.4" y="12.5" width="7.2" height="5" rx="1"/></symbol>
     <symbol id="i-arrow-r" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="9" cy="8.5" r="3.4"/><path d="M16.5 20a5 5 0 0 0-2-4"/><circle cx="17" cy="9.5" r="2.6"/></symbol>
-  </svg>'''
+__DIVISION_SYMBOLS__
+  </svg>'''.replace("__DIVISION_SYMBOLS__", division_symbols())
 
 ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
 

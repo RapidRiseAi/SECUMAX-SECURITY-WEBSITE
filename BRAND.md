@@ -112,6 +112,55 @@ at them.
 
 ---
 
+## 3c. Icon system
+
+Two families, deliberately.
+
+**Division badges** (`d-*`) are the client's own artwork, supplied as a flat PNG
+strip and **traced**, not redrawn: `tools/trace-division-icons.py` separates each
+cell into a blue mask (the ring or shield) and a white mask (the glyph), traces
+each with potrace and emits two filled paths. Redrawing them by hand would have
+been an approximation of someone else's design.
+
+They are two-tone by construction: the glyph takes `var(--ink)` and the
+container `var(--blue-lift)`, so they do not inherit whatever colour the
+surrounding component sets. That is why `.svc-card__icon` no longer draws a
+tinted chip; the badge already carries its own container and framing it again
+was a container inside a container.
+
+**UI icons** (`i-*`) stay the thin stroked set: mail, phone, arrow, and the
+sub-service icons inside division pages. Mixing a badge into a row of stroked
+icons reads as a mistake, so sub-services keep the stroked family.
+
+| Badge | Source | Used for |
+|---|---|---|
+| `d-investigations` | fingerprint under a magnifier | Special Investigations |
+| `d-asset` | padlock in a shield | Asset Protection |
+| `d-close` | suited figure | Executive Close Protection |
+| `d-mining` | ballistic helmet | Mining Security |
+| `d-guarding` | three figures in a shield | Guarding and Site Security |
+| `d-polygraph` | ECG trace | the Polygraph Services sub-service |
+| `d-training` | **drawn by us**, not supplied | Training |
+
+The supplied strip is labelled with the *previous* brand's division names, so
+the artwork-to-division mapping above is a deliberate reassignment, not a
+one-to-one copy. Training had no icon in the set; ours is drawn to the ring
+geometry measured off the client's own art (r=47.5, stroke 4 in a 100 unit box)
+so it sits in the family rather than merely near it.
+
+Re-tracing is the only step needed to update them:
+
+```
+python3 tools/trace-division-icons.py   # writes tools/_division-icons.svg
+python3 tools/build-site.py             # inlines it into every page's sprite
+```
+
+The sprite is inlined on all 11 pages, so its weight is a real decision: tracing
+at 300px cost 21.4 KB of path data, 200px costs 12.2 KB and is indistinguishable
+at the sizes these are actually used (96px and below).
+
+---
+
 ## 4. Services: six divisions
 
 Taken from the company profile. `tools/build-site.py` `DIVISIONS` is the machine

@@ -485,13 +485,16 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
   font-family:'Chakra Petch',sans-serif;font-size:2.6rem;font-weight:700;
   color:rgba(255,255,255,.05);line-height:1;
 }
+/* Holds a division badge, which already carries its own ring or shield. The
+   tinted chip that framed the old stroked icons would be a container inside a
+   container, so the badge stands on its own and takes the space instead. */
 .svc-card__icon{
-  width:56px;height:56px;border-radius:14px;margin-bottom:20px;
-  display:grid;place-items:center;color:var(--blue-lift);
-  background:rgba(77,124,255,.10);border:1px solid var(--line-blue);
-  transition:background .35s var(--ease),transform .35s var(--ease);
+  width:56px;height:56px;margin-bottom:20px;
+  display:grid;place-items:center;
+  transition:transform .35s var(--ease);
 }
-.svc-card:hover .svc-card__icon{background:rgba(77,124,255,.18);transform:scale(1.06)}
+.svc-card__icon .ico{width:52px;height:52px}
+.svc-card:hover .svc-card__icon{transform:scale(1.06)}
 .svc-card__title{font-size:1.34rem;margin-bottom:11px}
 .svc-card__copy{font-size:.97rem;color:var(--muted);margin-bottom:18px;flex:1}
 .svc-card__list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}

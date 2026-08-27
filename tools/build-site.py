@@ -336,14 +336,14 @@ def head(p, title, desc, canon, noindex=False):
   <meta property="og:image" content="{DOMAIN}/assets/img/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="{BRAND}: security, protection, intelligence, control" />
+  <meta property="og:image:alt" content="The {BRAND} logo" />
   <meta property="og:site_name" content="{BRAND}" />
   <meta property="og:locale" content="en_ZA" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="{title}" />
   <meta name="twitter:description" content="{desc}" />
   <meta name="twitter:image" content="{DOMAIN}/assets/img/og-image.png" />
-  <meta name="twitter:image:alt" content="{BRAND}: security, protection, intelligence, control" />
+  <meta name="twitter:image:alt" content="The {BRAND} logo" />
 {robots_tag}
   <link rel="icon" href="{p}favicon.ico" sizes="32x32" />
   <link rel="icon" type="image/svg+xml" href="{p}assets/img/favicon.svg" />

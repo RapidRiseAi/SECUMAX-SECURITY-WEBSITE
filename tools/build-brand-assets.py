@@ -28,11 +28,10 @@ candidates at 32px and looking at them rather than by guessing.
 """
 import os
 import re
-import subprocess
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BRAND_DIR = os.path.join(ROOT, "assets", "brand")
@@ -162,84 +161,42 @@ def svg_favicon():
 svg_favicon()
 
 # ---- 3. Open Graph card ------------------------------------------------
-# Fonts are embedded as data URIs. A <link> to Google Fonts races the
-# screenshot, and the API returns one @font-face per subset with latin NOT
-# first, so naively taking the first match embeds a font with no Latin glyphs
-# that Chromium loads and silently falls back from. The card then ships in
-# Arial and looks almost right.
-CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+# The card is the lockup itself, centred: the figure with GREYMAN / PROTECTION
+# beneath it, exactly as the brand artwork draws it. An earlier version set the
+# name in type beside the mark, which meant the share image and the logo were
+# two different lockups of the same name.
+#
+# No webfonts are needed now that no type is being set, which also removes the
+# Google Fonts round trip from this build.
+def og_card():
+    W, H = 1200, 630
+    card = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+
+    # A soft blue bloom behind the mark so the black ground has some depth.
+    # Computed as a smooth radial falloff rather than drawn as concentric
+    # ellipses: stepped alpha leaves a visible hard edge where the outermost
+    # ring meets the background, which reads as a grey oval rather than a glow.
+    yy, xx = np.mgrid[0:H, 0:W]
+    cx, cy = W / 2, H * 0.46
+    d = np.sqrt(((xx - cx) / (W * 0.42)) ** 2 + ((yy - cy) / (H * 0.62)) ** 2)
+    falloff = np.clip(1.0 - d, 0.0, 1.0) ** 2.2
+    glow = np.zeros((H, W, 4), dtype=np.uint8)
+    glow[:, :, 0], glow[:, :, 1], glow[:, :, 2] = 0, 37, 168
+    glow[:, :, 3] = (falloff * 64).astype(np.uint8)
+    card.alpha_composite(Image.fromarray(glow, "RGBA"))
+
+    art = trim(brand("lockup-for-dark.png"))
+    # fit to the card height with generous margin; the lockup is portrait so
+    # height is the binding dimension
+    target_h = int(H * 0.74)
+    scale = target_h / art.height
+    art = art.resize((max(1, int(art.width * scale)), target_h), Image.LANCZOS)
+    card.alpha_composite(art, ((W - art.width) // 2, (H - art.height) // 2))
+
+    card.convert("RGB").save(out("og-image.png"), optimize=True)
 
 
-def font_face(family, weight, css_name):
-    import base64
-    import urllib.request
-    api = f"https://fonts.googleapis.com/css2?family={family}:wght@{weight}&display=block"
-    req = urllib.request.Request(api, headers={
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"})
-    try:
-        css = urllib.request.urlopen(req, timeout=25).read().decode()
-        blocks = re.findall(r"/\*\s*([\w-]+)\s*\*/\s*(@font-face\s*\{.*?\})", css, re.S)
-        chosen = next((b for n, b in blocks if n == "latin"), None)
-        if chosen is None:
-            chosen = blocks[-1][1] if blocks else css
-        url = re.search(r"src:\s*url\((https://[^)]+)\)", chosen).group(1)
-        blob = urllib.request.urlopen(url, timeout=25).read()
-    except Exception as e:                       # noqa: BLE001
-        print(f"note: could not embed {css_name} ({e}); falling back")
-        return ""
-    fmt = "woff2" if url.endswith(".woff2") else "truetype"
-    b64 = base64.b64encode(blob).decode()
-    return (f"@font-face{{font-family:'{css_name}';font-weight:{weight};"
-            f"font-display:block;src:url(data:font/{fmt};base64,{b64}) format('{fmt}')}}")
-
-
-faces = font_face("Chakra+Petch", 700, "Chakra Petch") + \
-        font_face("Barlow+Condensed", 700, "Barlow Condensed")
-
-# The card sets the name the same way the site does: GREYMAN, then PROTECTION
-# centred between two blue rules that fill out to the same width.
-STYLE = """
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{width:1200px;height:630px;background:#000;display:flex;align-items:center;
-       gap:56px;padding:0 80px;overflow:hidden;position:relative}
-  body::after{content:"";position:absolute;inset:0;
-       background:radial-gradient(720px 430px at 74% 50%,rgba(0,37,168,.34),transparent 70%)}
-  img{width:300px;height:auto;position:relative;z-index:1;flex:none}
-  .t{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch}
-  h1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:104px;
-     line-height:.9;color:#fff;letter-spacing:.06em;margin-right:-.06em}
-  .sub{display:flex;align-items:center;gap:16px;margin-top:16px}
-  .sub span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:31px;
-            letter-spacing:.42em;margin-right:-.42em;color:#fff;text-transform:uppercase}
-  .sub i{flex:1;height:5px;background:BLUEHEX;display:block}
-  p{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;
-    letter-spacing:.18em;color:#8E8E99;margin-top:30px;white-space:nowrap;
-    text-transform:uppercase}
-""".replace("BLUEHEX", BLUE)
-
-og_html = os.path.join(BRAND_DIR, "_og.html")
-with open(og_html, "w", encoding="utf-8") as f:
-    f.write('<!DOCTYPE html><html><head><meta charset="utf-8">\n'
-            f"<style>{faces}</style>\n<style>{STYLE}</style></head><body>\n"
-            '  <img src="mark-for-dark.png">\n'
-            '  <div class="t">\n'
-            "    <h1>GREYMAN</h1>\n"
-            '    <div class="sub"><i></i><span>Protection</span><i></i></div>\n'
-            "    <p>Security &middot; Protection &middot; Intelligence &middot; Control</p>\n"
-            "  </div>\n</body></html>")
-
-if os.path.exists(CHROME):
-    subprocess.run([CHROME, "--headless", "--no-sandbox", "--disable-gpu",
-                    "--hide-scrollbars", "--force-device-scale-factor=1",
-                    "--window-size=1200,630", "--virtual-time-budget=9000",
-                    f"--screenshot={out('og-image.png')}", og_html],
-                   check=False, capture_output=True)
-    if os.path.exists(out("og-image.png")):
-        Image.open(out("og-image.png")).convert("RGB").save(out("og-image.png"), optimize=True)
-else:
-    print(f"note: no chromium at {CHROME}, skipped og-image.png")
-os.remove(og_html)
+og_card()
 
 # ---- 4. retire assets the site no longer references ---------------------
 for stale in ("greyman-logo.png",):

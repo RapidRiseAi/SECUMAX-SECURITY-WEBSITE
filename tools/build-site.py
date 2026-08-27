@@ -34,6 +34,21 @@ def img_size(rel):
         return im.size
 
 
+def asset_v(rel):
+    """Short content hash for a shipped asset, used as a cache-busting query.
+
+    The stylesheet and script have fixed filenames and a one-week
+    Cache-Control. Without this, changing them ships new HTML against CSS the
+    browser will not re-fetch for seven days: the page renders with markup the
+    old stylesheet has no rules for, which is exactly how the hero lost its
+    layout after a deploy. Hashing the content means the URL changes whenever
+    the file does, so the long cache stays safe.
+    """
+    import hashlib
+    with open(os.path.join(ROOT, rel), "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()[:10]
+
+
 def division_symbols():
     """The client's own division icons, traced by tools/trace-division-icons.py.
 
@@ -48,6 +63,8 @@ def division_symbols():
 
 
 MARK_W, MARK_H = img_size("assets/img/greyman-mark.png")
+CSS_V = asset_v("assets/css/styles.css")
+JS_V = asset_v("assets/js/main.js")
 
 # The one place the domain lives. Switched to greymanprotection.co.za once that
 # host was confirmed live and serving this site: leaving canonicals pointed at
@@ -357,7 +374,7 @@ def head(p, title, desc, canon, noindex=False):
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{p}assets/css/styles.css" />
+  <link rel="stylesheet" href="{p}assets/css/styles.css?v={CSS_V}" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -523,7 +540,7 @@ def footer(p):
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
 
-  <script src="{p}assets/js/main.js" defer></script>
+  <script src="{p}assets/js/main.js?v={JS_V}" defer></script>
 </body>
 </html>
 '''

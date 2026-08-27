@@ -326,6 +326,27 @@ if os.path.exists(qr_tool):
                     f"printed QR points at /{rel_path}, which no longer exists "
                     f"as a page: every printed card would 404")
 
+# ---------- cache-busting versions must match the files ----------
+# A stale ?v= is worse than none: it pins browsers to an old stylesheet for a
+# week while the HTML moves on.
+import hashlib
+# NB: do not name the loop variable `rel`; that is the path helper defined above.
+for asset_rel, pat in (("assets/css/styles.css", r"assets/css/styles\.css\?v=([0-9a-f]+)"),
+                       ("assets/js/main.js", r"assets/js/main\.js\?v=([0-9a-f]+)")):
+    fp = os.path.join(ROOT, asset_rel)
+    if not os.path.exists(fp):
+        continue
+    want = hashlib.sha256(open(fp, "rb").read()).hexdigest()[:10]
+    for page in pages:
+        body = open(page, encoding="utf-8").read()
+        m = re.search(pat, body)
+        if not m:
+            errors.append(f"{rel(page)}: {os.path.basename(fp)} has no ?v= "
+                          f"cache-busting version")
+        elif m.group(1) != want:
+            errors.append(f"{rel(page)}: {os.path.basename(fp)} ?v={m.group(1)} "
+                          f"is stale, file hashes to {want}")
+
 # ---------- report ----------
 if parked_counts:
     total = sum(parked_counts.values())

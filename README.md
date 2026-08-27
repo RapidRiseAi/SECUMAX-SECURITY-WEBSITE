@@ -108,18 +108,48 @@ with a plain confirmation page instead of JSON, so the form still works.
 The API key is **never** committed. `tools/validate.py` fails the build if
 anything that looks like one appears in a tracked file.
 
-Cloudflare dashboard -> Workers & Pages -> the project -> **Settings** ->
-**Variables and secrets** -> Add, for **Production** and **Preview**:
-
 | Name | Type | Value |
 |---|---|---|
 | `RESEND_API_KEY` | **Secret** | the key from the Resend account |
 | `MAIL_FROM` | Text, optional | overrides the default From address |
 | `MAIL_TO` | Text, optional | overrides `ops@greymanprotection.co.za` |
 
+> **The dashboard has two sections called "Variables and secrets", and only one
+> of them works.** This is worth reading slowly, because putting the key in the
+> wrong one looks exactly like putting it in the right one: the value saves, the
+> UI says `Value encrypted`, and the form goes on answering 503.
+>
+> | Section | Where it is | Who can read it |
+> |---|---|---|
+> | **Build** variables and secrets | Settings -> **Build**, next to *API token* and *Deploy Hooks* | the build process only |
+> | **Runtime** variables and secrets | Settings -> **Variables and Secrets** on the Worker, with *Bindings* | `env.*` in the running Worker |
+>
+> The key belongs in the **runtime** one. A build secret is visible only to
+> `npx wrangler versions upload` while it runs; the Worker never sees it, so
+> `env.RESEND_API_KEY` stays undefined.
+>
+> The unambiguous way, if you have wrangler and are logged in:
+>
+> ```bash
+> npx wrangler secret put RESEND_API_KEY
+> ```
+>
+> That always writes a runtime secret. Confirm with `npx wrangler secret list`.
+
 Add the key as a **Secret**, not as plaintext: a plaintext variable stays
-readable in the dashboard afterwards. Redeploy after adding it, because
-variables are bound at deploy time.
+readable in the dashboard afterwards.
+
+To check whether the running Worker can actually see it, without a browser:
+
+```bash
+curl -s -X POST https://www.greymanprotection.co.za/api/contact \
+  -H "Accept: application/json" \
+  --data-urlencode "name=check" --data-urlencode "email=check@example.com" \
+  --data-urlencode "message=check"
+```
+
+`"not configured yet"` with a 503 means the Worker cannot see a key, whatever
+the dashboard shows.
 
 Two things must be true in the Resend account or the send is rejected:
 

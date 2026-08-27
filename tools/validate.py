@@ -290,6 +290,42 @@ for page in pages:
                           f"(aspect {rw/rh:.3f}); the image will be distorted "
                           f"or the reserved box will be wrong")
 
+# ---------- the printed QR code's target must keep existing ----------
+# A QR on a business card cannot be corrected after the print run. This ties the
+# build to it: if the page the code points at is renamed or deleted, or the
+# domain constant moves away from what was printed, the build fails here rather
+# than in someone's wallet.
+qr_tool = os.path.join(ROOT, "tools", "build-contact-qr.py")
+if os.path.exists(qr_tool):
+    tool_src = open(qr_tool, encoding="utf-8").read()
+    m = re.search(r'^URL = "([^"]+)"', tool_src, re.M)
+    if not m:
+        errors.append("build-contact-qr.py: cannot find the URL constant")
+    else:
+        qr_url = m.group(1)
+        # the domain the pages declare must be the domain that was printed
+        site_domain = None
+        idx = os.path.join(ROOT, "index.html")
+        if os.path.exists(idx):
+            cm = re.search(r'rel="canonical" href="(https://[^/"]+)',
+                           open(idx, encoding="utf-8").read())
+            site_domain = cm.group(1) if cm else None
+        if site_domain and not qr_url.startswith(site_domain):
+            errors.append(
+                f"printed QR points at {qr_url} but the site now declares "
+                f"{site_domain}: the printed cards would be stranded")
+        # and the path itself must still be a real page
+        path_part = qr_url.split("://", 1)[-1].split("/", 1)
+        rel_path = path_part[1] if len(path_part) > 1 else ""
+        rel_path = rel_path.split("#")[0].split("?")[0].strip("/")
+        if rel_path:
+            candidates = [rel_path, rel_path + ".html",
+                          os.path.join(rel_path, "index.html")]
+            if not any(os.path.exists(os.path.join(ROOT, c)) for c in candidates):
+                errors.append(
+                    f"printed QR points at /{rel_path}, which no longer exists "
+                    f"as a page: every printed card would 404")
+
 # ---------- report ----------
 if parked_counts:
     total = sum(parked_counts.values())

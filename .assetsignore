@@ -1,0 +1,46 @@
+# Files in the repo that are not the website.
+#
+# The asset directory is the repo root, so without this list every one of these
+# is uploaded and publicly served. That is what was happening: build-site.py,
+# BRAND.md and the client's print artwork were all fetchable over HTTPS.
+#
+# Syntax is gitignore-style, matched against paths inside the asset directory.
+# Anything a page links to must NOT appear here; tools/validate.py enforces that
+# by resolving every referenced file against these patterns.
+#
+# Read wrangler's own behaviour before trusting a default: it walks the asset
+# directory with a plain recursive readdir and excludes only `.assetsignore`,
+# `_headers` and `_redirects` on its own. Dotfiles are NOT excluded. The
+# "Read N files from the assets directory" line it prints is the raw walk from
+# BEFORE this file is applied, and it counts directories too, so it is not a
+# measure of what gets uploaded and should not be read as one.
+
+# The git directory. Not a default exclusion, and the asset directory is the
+# repo root, so without this line every object in the history is uploaded and
+# served: /.git/config, every past commit, anything ever committed and removed.
+.git/
+
+# Local wrangler state and installed packages, if either ever appears here.
+.wrangler/
+node_modules/
+
+# Generators, the validator and the test suite.
+tools/
+
+# Worker source. It is the entry point, not an asset, and serving a copy of it
+# next to the running code is pointless at best.
+worker/
+wrangler.jsonc
+
+# Documentation and handover notes.
+*.md
+
+# Master artwork and print deliverables: the logo library and the QR codes.
+# These are for the client and the printer, not for the web. robots.txt already
+# asked crawlers to leave assets/brand alone; this stops it being served at all.
+assets/brand/
+brand-assets/
+
+# Local development scaffolding.
+.dev.vars.example
+.gitignore

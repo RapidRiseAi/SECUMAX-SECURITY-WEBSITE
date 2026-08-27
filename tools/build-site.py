@@ -83,9 +83,9 @@ DIRECTORS = [
 BUILDER = "Rapid Rise AI"
 BUILDER_URL = "https://rapidriseai.com"
 
-# Where the contact form posts. A Cloudflare Pages Function at this path
-# (functions/api/contact.js) relays it to EMAIL through Resend. Kept as a
-# constant so the page, the function and the validator cannot disagree.
+# Where the contact form posts. The Worker routes this path (worker/index.js)
+# to the handler in worker/contact.js, which relays it to EMAIL through Resend.
+# Kept as a constant so the page, the Worker and the validator cannot disagree.
 FORM_ENDPOINT = "/api/contact"
 
 # ---------------------------------------------------------------------------
@@ -955,10 +955,10 @@ def page_contact():
           <div class="contact__form reveal" style="--d:.1s">
             <h2 class="section__title section__title--sm">Send an enquiry</h2>
             <p class="form__hint">Every enquiry is treated in confidence.</p>
-            <!-- Posts to a Cloudflare Pages Function, which relays it to the ops
-                 mailbox. action/method are set so the form still works with
-                 JavaScript off: the function answers a plain form post with a
-                 confirmation page instead of JSON. -->
+            <!-- Posts to the Worker, which relays it to the ops mailbox.
+                 action/method are set so the form still works with JavaScript
+                 off: the Worker answers a plain form post with a confirmation
+                 page instead of JSON. -->
             <form id="contactForm" action="{FORM_ENDPOINT}" method="post" novalidate>
               <div class="field">
                 <input type="text" id="name" name="name" placeholder=" " maxlength="120" required />
@@ -1298,8 +1298,8 @@ def headers():
 # Written against what this site ACTUALLY does, which is unusually little:
 #
 #   * it sets no cookies and runs no analytics
-#   * the contact form posts to a Pages Function which relays the message to the
-#     ops mailbox through Resend, so Resend is an operator under POPIA and the
+#   * the contact form posts to /api/contact, which the Worker relays to the ops
+#     mailbox through Resend, so Resend is an operator under POPIA and the
 #     notice has to say so; nothing is written to a database
 #   * it does load Google Fonts, which is a third-party request
 #

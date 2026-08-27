@@ -176,8 +176,8 @@ They are written against **what this site actually does**, which is unusually
 little: it sets no cookies and runs no analytics. It does load Google Fonts,
 which is a third-party request, and that is disclosed.
 
-The contact form posts to a Cloudflare Pages Function which relays the enquiry
-to the ops mailbox through Resend. Resend is therefore an **operator** under
+The contact form posts to `/api/contact` on the Worker, which relays the
+enquiry to the ops mailbox through Resend. Resend is therefore an **operator** under
 POPIA and the policy names it. Nothing is written to a database. If that
 plumbing changes, the "The contact form" block in `page_privacy()` has to change
 with it: the policy is only worth anything while it describes the real thing.
@@ -240,12 +240,27 @@ python3 tools/validate.py             # must be green before pushing
 node   tools/test-contact-function.mjs   # the enquiry endpoint, Resend stubbed
 ```
 
-`functions/api/contact.js` is the third shared file. It is the only server-side
-code in the project and the only path an enquiry travels, so a change there is a
-change to whether the business hears from anyone. It reads its credentials from
-`env` and nothing else: **no key, of any provider, is ever committed.** The
-validator sweeps every tracked file for key-shaped strings and fails the build
-on a hit.
+`worker/` is the third shared thing. It is the only server-side code in the
+project and the only path an enquiry travels, so a change there is a change to
+whether the business hears from anyone. It reads its credentials from `env` and
+nothing else: **no key, of any provider, is ever committed.** The validator
+sweeps every tracked file for key-shaped strings and fails the build on a hit.
+
+**This site is a Cloudflare Worker with static assets, not a Pages project.** It
+is worth stating plainly because the two look identical from the repo and are
+not: on Pages a `functions/` directory becomes routes on its own, on Workers it
+does nothing whatsoever. The endpoint was written as a Pages Function first, the
+build failed on "Missing entry-point to Worker script or to assets directory",
+and had it not failed the form would have posted into a 404 forever. Routing is
+now explicit in `worker/index.js` and the platform config is `wrangler.jsonc`.
+The validator fails the build if a `functions/` directory reappears.
+
+`assets.directory` is the repo root, so **`.assetsignore` is a security control,
+not housekeeping**: it decides what is publicly served. Wrangler excludes only
+`.assetsignore`, `_headers` and `_redirects` on its own and does not skip
+dotfiles, so the `.git/` line is what stops the entire repository history being
+published. Do not remove a line from that file without reading README,
+"What actually gets served".
 
 ### Generated, not hand-written
 

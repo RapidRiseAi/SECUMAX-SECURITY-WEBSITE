@@ -202,10 +202,10 @@
           <div class="contact__form reveal" style="--d:.1s">
             <h2 class="section__title section__title--sm">Send an enquiry</h2>
             <p class="form__hint">Every enquiry is treated in confidence.</p>
-            <!-- Posts to a Cloudflare Pages Function, which relays it to the ops
-                 mailbox. action/method are set so the form still works with
-                 JavaScript off: the function answers a plain form post with a
-                 confirmation page instead of JSON. -->
+            <!-- Posts to the Worker, which relays it to the ops mailbox.
+                 action/method are set so the form still works with JavaScript
+                 off: the Worker answers a plain form post with a confirmation
+                 page instead of JSON. -->
             <form id="contactForm" action="/api/contact" method="post" novalidate>
               <div class="field">
                 <input type="text" id="name" name="name" placeholder=" " maxlength="120" required />
@@ -373,6 +373,6 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
 
-  <script src="assets/js/main.js?v=76e77e5aa2" defer></script>
+  <script src="assets/js/main.js?v=e6c384bce9" defer></script>
 </body>
 </html>

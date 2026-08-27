@@ -1,17 +1,21 @@
 /**
- * POST /api/contact : Cloudflare Pages Function.
+ * POST /api/contact : the enquiry handler.
  *
  * Takes the contact-page form and relays it to the ops mailbox through Resend.
  * Nothing is stored: the request is validated, turned into an email, and
  * dropped. There is no database and no queue, so there is nothing here to leak.
  *
- * Configuration lives entirely in Cloudflare Pages environment variables. The
- * API key is NEVER committed:
+ * Mounted by worker/index.js. It is a plain module that takes a Request and
+ * returns a Response, with no platform-specific API in it, which is why it can
+ * be exercised under bare Node by tools/test-contact-function.mjs.
  *
- *   RESEND_API_KEY   required. Cloudflare dashboard -> Pages -> the project ->
- *                    Settings -> Variables and Secrets -> add as a SECRET, for
- *                    both Production and Preview. Not a plaintext variable:
- *                    plaintext values are readable in the dashboard afterwards.
+ * Configuration lives entirely in Cloudflare environment variables. The API key
+ * is NEVER committed:
+ *
+ *   RESEND_API_KEY   required. Cloudflare dashboard -> Workers & Pages -> the
+ *                    project -> Settings -> Variables and Secrets -> add as a
+ *                    SECRET, for both Production and Preview. Not a plaintext
+ *                    variable: plaintext values stay readable in the dashboard.
  *   MAIL_FROM        optional. Defaults to the value below. Must be on a domain
  *                    verified in the Resend account, or Resend rejects the send.
  *   MAIL_TO          optional. Defaults to the ops mailbox.
@@ -132,14 +136,8 @@ function reply(request, status, ok, message, heading) {
     : htmlResponse(status, heading || (ok ? "Enquiry sent" : "Not sent"), message);
 }
 
-/**
- * One handler for every method, dispatching on `request.method` itself.
- *
- * Pages also supports method-named exports (`onRequestPost`), but exporting
- * both those and a catch-all `onRequest` leaves which one wins up to the
- * generated router. Doing the dispatch here removes the question.
- */
-export async function onRequest(context) {
+/** One handler for every method, dispatching on `request.method` itself. */
+export async function handleContact(context) {
   const { request } = context;
   if (request.method === "POST") return handlePost(context);
   if (request.method === "OPTIONS") {

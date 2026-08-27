@@ -1,0 +1,50 @@
+{
+  // Cloudflare Worker with static assets.
+  //
+  // Until this file existed the build ran `npx wrangler versions upload` with
+  // nothing to upload and failed on "Missing entry-point to Worker script or to
+  // assets directory". Every value below was chosen to match what the live site
+  // was already doing, so adding the config does not change how any existing URL
+  // behaves. The two deliberate changes are called out by name.
+
+  // Must match the existing Worker, or a deploy creates a second one and the
+  // custom domain keeps pointing at the old.
+  "name": "secumax-security-website",
+  "compatibility_date": "2026-08-27",
+
+  // Explicit routing lives here. `functions/` is a Pages convention and does
+  // nothing on Workers.
+  "main": "worker/index.js",
+
+  "assets": {
+    // The repo root is the deployable output: no build step, no dist.
+    "directory": ".",
+
+    // Lets worker/index.js fall back to the static site.
+    "binding": "ASSETS",
+
+    // The default, set explicitly because every URL on the site depends on it:
+    // /contact is served from contact.html and /contact.html 307s to /contact,
+    // which is what the live site does today and what the canonicals assume.
+    // Left implicit, a future change to the default would silently move every
+    // page on the site.
+    "html_handling": "auto-trailing-slash",
+
+    // CHANGE: was effectively "none", so a missing URL returned an empty body
+    // with a 404 and the site's own 404.html was never served, despite being
+    // built, linked and checked by tools/validate.py. This serves it.
+    "not_found_handling": "404-page",
+
+    // Only the dynamic path pays for a Worker invocation. Everything else is
+    // served straight off the asset layer, and never reaches the Worker at all.
+    // Declared rather than relied on: it guarantees /api/contact reaches the
+    // handler regardless of how the asset layer treats an unmatched path.
+    "run_worker_first": ["/api/*"]
+  },
+
+  "observability": {
+    // So a failed Resend call can actually be read back in the dashboard. The
+    // handler logs the provider's reason and never returns it to the visitor.
+    "enabled": true
+  }
+}

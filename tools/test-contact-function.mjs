@@ -1,5 +1,5 @@
 /**
- * Exercise functions/api/contact.js without deploying it.
+ * Exercise worker/contact.js without deploying it.
  *
  *     node tools/test-contact-function.mjs
  *
@@ -10,7 +10,7 @@
  *
  * Exits non-zero on the first failure, so it can gate a commit.
  */
-import { onRequest } from "../functions/api/contact.js";
+import { handleContact } from "../worker/contact.js";
 
 let sent = null;
 let nextResendStatus = 200;
@@ -36,7 +36,7 @@ function post(fields, { json = true, env = ENV, headers = {} } = {}) {
   for (const [k, v] of Object.entries(fields)) fd.set(k, v);
   const h = { "CF-Connecting-IP": nextIp(), "CF-IPCountry": "ZA", ...headers };
   if (json) h["Accept"] = "application/json";
-  return onRequest({
+  return handleContact({
     request: new Request("https://www.greymanprotection.co.za/api/contact", {
       method: "POST", body: fd, headers: h,
     }),
@@ -71,7 +71,7 @@ const has = (hay, needle, what) => {
   if (!String(hay).includes(needle)) throw new Error(`${what}: ${JSON.stringify(needle)} not found`);
 };
 
-console.log("functions/api/contact.js");
+console.log("worker/contact.js");
 
 await check("a good submission is relayed to Resend and reports success", async () => {
   sent = null;
@@ -183,7 +183,7 @@ await check("a browser posting the form natively gets HTML, not JSON", async () 
 });
 
 await check("GET is answered with 405, not the site 404", async () => {
-  const res = await onRequest({
+  const res = await handleContact({
     request: new Request("https://www.greymanprotection.co.za/api/contact"),
     env: ENV,
   });
@@ -192,7 +192,7 @@ await check("GET is answered with 405, not the site 404", async () => {
 
 await check("a JSON body is accepted as well as a form post", async () => {
   sent = null;
-  const res = await onRequest({
+  const res = await handleContact({
     request: new Request("https://www.greymanprotection.co.za/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json",
@@ -210,6 +210,78 @@ await check("an oversized message is truncated rather than relayed whole", async
   await post({ ...GOOD, email: "long@example.com", message: "x".repeat(20000) });
   if (sent.body.text.split("\n").find((l) => l.length > 5001)) {
     throw new Error("the message was not capped at 5000 characters");
+  }
+});
+
+/* ---------------------------------------------------------------------------
+ * worker/index.js: the routing in front of the handler.
+ *
+ * This is the part that was wrong the first time round. The handler was written
+ * as a Pages Function under `functions/`, which this project does not use, so it
+ * would never have been reached in production however well it worked in
+ * isolation. Test the wiring, not just the thing it wires up.
+ * ------------------------------------------------------------------------- */
+const { default: worker } = await import("../worker/index.js");
+
+console.log("\nworker/index.js");
+
+function envWithAssets() {
+  const asked = [];
+  return {
+    asked,
+    RESEND_API_KEY: "re_stub_key_not_real",
+    ASSETS: {
+      fetch: async (req) => {
+        asked.push(new URL(req.url).pathname);
+        return new Response("static asset", { status: 200 });
+      },
+    },
+  };
+}
+
+await check("a page request is served by the asset layer, not the handler", async () => {
+  const env = envWithAssets();
+  const res = await worker.fetch(
+    new Request("https://www.greymanprotection.co.za/contact"), env, {});
+  eq(res.status, 200, "status");
+  eq(await res.text(), "static asset", "body came from ASSETS");
+  eq(env.asked.join(","), "/contact", "ASSETS was asked for the page");
+});
+
+await check("POST /api/contact reaches the handler and is relayed", async () => {
+  sent = null;
+  const env = envWithAssets();
+  const fd = new FormData();
+  for (const [k, v] of Object.entries({ ...GOOD, email: "routed@example.com" })) fd.set(k, v);
+  const res = await worker.fetch(
+    new Request("https://www.greymanprotection.co.za/api/contact", {
+      method: "POST", body: fd,
+      headers: { Accept: "application/json", "CF-Connecting-IP": "192.0.2.99" },
+    }), env, {});
+  eq(res.status, 200, "status");
+  if (!sent) throw new Error("the request never reached the contact handler");
+  eq(sent.body.to[0], "ops@greymanprotection.co.za", "recipient");
+  eq(env.asked.length, 0, "the asset layer was not involved");
+});
+
+await check("an unknown /api/ path is a JSON 404, not the site's 404 page", async () => {
+  const env = envWithAssets();
+  const res = await worker.fetch(
+    new Request("https://www.greymanprotection.co.za/api/nope"), env, {});
+  eq(res.status, 404, "status");
+  eq((await res.json()).ok, false, "ok flag");
+  eq(env.asked.length, 0, "the asset layer was not involved");
+});
+
+await check("the form's action and the worker's route are the same path", async () => {
+  const html = await import("node:fs").then((fs) =>
+    fs.readFileSync(new URL("../contact.html", import.meta.url), "utf-8"));
+  const action = /<form[^>]*id="contactForm"[^>]*action="([^"]+)"/.exec(html);
+  if (!action) throw new Error("contact.html has no form action to compare against");
+  const src = await import("node:fs").then((fs) =>
+    fs.readFileSync(new URL("../worker/index.js", import.meta.url), "utf-8"));
+  if (!src.includes(`pathname === "${action[1]}"`)) {
+    throw new Error(`the form posts to ${action[1]} but worker/index.js does not route it`);
   }
 });
 

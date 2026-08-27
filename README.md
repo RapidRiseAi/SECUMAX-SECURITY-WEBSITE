@@ -15,6 +15,9 @@ assets/css/styles.css                     the whole design system
 assets/js/main.js                         all interaction
 assets/img/                               favicons, OG card, logo
 assets/brand/                             master artwork, not shipped to the page
+worker/                                   the Worker: routing + the enquiry endpoint
+wrangler.jsonc                            Cloudflare config: entry point and assets
+.assetsignore                             what is NOT uploaded, i.e. what is not public
 tools/                                    generators and the validator
 BRAND.md                                  the contract; read it before changing anything
 ```
@@ -71,25 +74,33 @@ across every page. It fails the build on:
 - a page missing from `sitemap.xml`, or the 404 wrongly listed in it
 - a `_redirects` rule pointing at a page that does not exist
 - a missing `robots.txt`, `_headers` or `favicon.ico`
+- **a committed API key**, or any string shaped like one
+- the contact form's `action` disagreeing with what `worker/index.js` routes
+- a `functions/` directory, which is a Pages convention this project cannot use
+- `wrangler.jsonc` losing its entry point, or changing `html_handling` or
+  `not_found_handling` out from under the site
+- `.assetsignore` excluding a file the pages link to, or failing to exclude
+  `.git/`
 
 ## The contact form
 
-The enquiry form posts to `/api/contact`, which is a **Cloudflare Pages
-Function** at `functions/api/contact.js`. It validates the submission, turns it
-into an email, sends it through [Resend](https://resend.com) to the ops mailbox,
-and forgets it. There is no database, no queue and nothing stored.
+The enquiry form posts to `/api/contact`, handled by the Worker. It validates the
+submission, turns it into an email, sends it through [Resend](https://resend.com)
+to the ops mailbox, and forgets it. There is no database, no queue and nothing
+stored.
 
 It was a `mailto:` handoff before. That only worked for visitors with a desktop
 mail client configured: on a phone, or on webmail, pressing send did nothing
 while the page still said the message had gone. Enquiries were being lost.
 
 ```
-contact.html   <form action="/api/contact" method="post">
+contact.html        <form action="/api/contact" method="post">
 assets/js/main.js   posts it with fetch and reports what the server said
-functions/api/contact.js   validates, relays through Resend, answers
+worker/index.js     routes /api/contact; everything else falls through to ASSETS
+worker/contact.js   validates, relays through Resend, answers
 ```
 
-With JavaScript off the browser posts the form natively and the function answers
+With JavaScript off the browser posts the form natively and the Worker answers
 with a plain confirmation page instead of JSON, so the form still works.
 
 ### Configuration (Cloudflare dashboard)
@@ -97,8 +108,8 @@ with a plain confirmation page instead of JSON, so the form still works.
 The API key is **never** committed. `tools/validate.py` fails the build if
 anything that looks like one appears in a tracked file.
 
-Cloudflare dashboard → Workers & Pages → the project → **Settings** →
-**Variables and secrets** → Add, for **Production** and **Preview**:
+Cloudflare dashboard -> Workers & Pages -> the project -> **Settings** ->
+**Variables and secrets** -> Add, for **Production** and **Preview**:
 
 | Name | Type | Value |
 |---|---|---|
@@ -112,7 +123,7 @@ variables are bound at deploy time.
 
 Two things must be true in the Resend account or the send is rejected:
 
-1. `greymanprotection.co.za` is a **verified sending domain** (Resend → Domains,
+1. `greymanprotection.co.za` is a **verified sending domain** (Resend -> Domains,
    then add the DNS records it gives you). Until it is, set `MAIL_FROM` to an
    address on a domain that already is.
 2. The key has send permission.
@@ -124,12 +135,13 @@ not send.
 ### Testing it
 
 ```bash
-node tools/test-contact-function.mjs   # the function, with Resend stubbed
+node tools/test-contact-function.mjs   # handler + routing, with Resend stubbed
 ```
 
-Sixteen cases: relay, honeypot, timing trap, rate limit, validation, header
-injection, HTML escaping, missing key, provider failure, no-JS HTML response.
-Nothing leaves the machine and no real key is needed.
+Twenty cases: relay, honeypot, timing trap, rate limit, validation, header
+injection, HTML escaping, missing key, provider failure, no-JS HTML response,
+and the Worker routing in front of all of it. Nothing leaves the machine and no
+real key is needed.
 
 ### Abuse
 
@@ -137,26 +149,62 @@ Built in: a honeypot field, a three-second timing trap, a per-isolate IP rate
 limit of five in ten minutes, and length caps on every field. The rate limit is
 best effort, because it lives in the isolate's memory rather than in KV. If the
 form is ever actually abused, add a **WAF rate-limiting rule on `/api/contact`**
-in the Cloudflare dashboard: that runs at the edge, before the function is
+in the Cloudflare dashboard: that runs at the edge, before the Worker is
 invoked, and needs no code change. Cloudflare Turnstile is the next step after
 that, and needs a site key in the page as well as a secret here.
 
 ## Deployment
 
-Publish the repo root to any static host. No build command. The host must serve
-extensionless URLs, which Cloudflare, Vercel, Netlify and GitHub Pages do by
-default; plain nginx needs `try_files $uri $uri.html`.
+This is a **Cloudflare Worker with static assets**, not a Pages project. The
+difference is not cosmetic: on Pages a `functions/` directory becomes routes
+automatically, and on Workers it does nothing at all. Routing is explicit, in
+`worker/index.js`, and the platform config is `wrangler.jsonc`.
 
-The one host-specific part is the contact endpoint: `functions/` is Cloudflare
-**Pages**. On Workers static assets the same handler has to be mounted from a
-Worker entry point instead, and on any other host the form needs its own
-endpoint. Check it after a deploy:
+The build runs `npx wrangler versions upload`. Without `wrangler.jsonc` that
+command has nothing to upload and fails with *"Missing entry-point to Worker
+script or to assets directory"*, which is exactly what happened when the
+endpoint was first written as a Pages Function.
 
 ```bash
-curl -i -X GET https://www.greymanprotection.co.za/api/contact   # expect 405
+npx wrangler deploy --dry-run    # parses the config and bundles the Worker
+python3 tools/validate.py        # must be green before pushing
 ```
 
-`405` means the function is live. `404` means the platform is not running it and
+### What actually gets served
+
+`assets.directory` is the repo root, so **`.assetsignore` decides what is
+public**. Wrangler walks the directory with a plain recursive readdir and
+excludes only `.assetsignore`, `_headers` and `_redirects` on its own: dotfiles
+are not excluded, so without an explicit `.git/` line the entire repository
+history is uploaded and served. The current list ships 27 files, the pages and
+their assets, and nothing else.
+
+Do not trust the `Read N files from the assets directory` line to check this. It
+is logged before `.assetsignore` is applied and it counts directories, so it
+reads 968 for a 27-file upload. To see the real list:
+
+```bash
+WRANGLER_LOG=debug npx wrangler deploy --dry-run 2>&1 | grep "Ignoring asset:"
+```
+
+`tools/validate.py` also resolves every file the pages reference against the
+ignore patterns, and fails if one of them would be excluded.
+
+### Serving elsewhere
+
+The static site itself is host-agnostic: publish the repo root, no build
+command, and the host must serve extensionless URLs (`try_files $uri $uri.html`
+on nginx). Only the contact endpoint is Cloudflare-specific, and only in how it
+is mounted: `worker/contact.js` is a plain module that takes a `Request` and
+returns a `Response`.
+
+Check it after a deploy:
+
+```bash
+curl -i https://www.greymanprotection.co.za/api/contact   # expect 405
+```
+
+`405` means the Worker is live. `404` means the platform is not running it and
 every enquiry is going nowhere.
 
 ## Before this goes public

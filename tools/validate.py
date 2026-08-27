@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Validate the Greyman Protection static site: links, sprite ids, CSS classes, brand hygiene."""
-import os, re, sys
+import json, os, re, sys
 from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -295,7 +295,8 @@ for page in pages:
 # answers it, and the mailbox it delivers to. They live apart, so check them
 # together. A form posting at a path with no function behind it looks fine in
 # the browser until someone actually sends an enquiry.
-FN = os.path.join(ROOT, "functions", "api", "contact.js")
+FN = os.path.join(ROOT, "worker", "contact.js")
+ENTRY = os.path.join(ROOT, "worker", "index.js")
 contact_html = os.path.join(ROOT, "contact.html")
 if os.path.exists(contact_html):
     body = open(contact_html, encoding="utf-8").read()
@@ -321,16 +322,152 @@ if os.path.exists(contact_html):
                 errors.append(f"contact.html: missing {label} ({needle})")
 
 if not os.path.exists(FN):
-    errors.append("functions/api/contact.js is missing: the form would post into "
-                  "the 404 page")
+    errors.append("worker/contact.js is missing: the form would post into the "
+                  "404 page")
 else:
     fn = open(FN, encoding="utf-8").read()
     if "ops@greymanprotection.co.za" not in fn:
-        errors.append("functions/api/contact.js: does not deliver to the ops mailbox")
+        errors.append("worker/contact.js: does not deliver to the ops mailbox")
     if "env.RESEND_API_KEY" not in fn:
-        errors.append("functions/api/contact.js: the API key must come from env")
+        errors.append("worker/contact.js: the API key must come from env")
     if "—" in fn:
-        errors.append("functions/api/contact.js: em dash present")
+        errors.append("worker/contact.js: em dash present")
+
+# ---------- the platform config must actually mount the handler ----------
+# The first version of this endpoint was written as a Pages Function under
+# `functions/`. This project is a Cloudflare Worker with static assets, where
+# that directory means nothing: the build failed, and had it not failed the
+# endpoint would simply never have been reached. The mounting is now explicit,
+# so check it rather than trusting a convention that does not apply here.
+if os.path.exists(os.path.join(ROOT, "functions")):
+    errors.append("a functions/ directory is back. That is a Cloudflare PAGES "
+                  "convention and does nothing on this Workers project; routing "
+                  "belongs in worker/index.js and wrangler.jsonc.")
+
+WRANGLER = os.path.join(ROOT, "wrangler.jsonc")
+if not os.path.exists(WRANGLER):
+    errors.append("wrangler.jsonc is missing: `wrangler versions upload` has no "
+                  "entry point and the build fails outright")
+else:
+    # Strip // comments so the JSONC parses. Naive on purpose: no string in this
+    # file contains a slash pair, and a parse failure is itself an error worth
+    # reporting rather than working around.
+    raw = open(WRANGLER, encoding="utf-8").read()
+    stripped = re.sub(r"^\s*//.*$", "", raw, flags=re.M)
+    try:
+        cfg = json.loads(stripped)
+    except json.JSONDecodeError as e:
+        cfg = None
+        errors.append(f"wrangler.jsonc does not parse: {e}")
+    if cfg:
+        entry = cfg.get("main")
+        if not entry:
+            errors.append("wrangler.jsonc: no `main`, so the Worker is never built")
+        elif not os.path.exists(os.path.join(ROOT, entry)):
+            errors.append(f"wrangler.jsonc: main points at {entry}, which does not exist")
+        a = cfg.get("assets") or {}
+        if a.get("directory") != ".":
+            errors.append("wrangler.jsonc: assets.directory must be '.', the repo "
+                          f"root is the deployable output (got {a.get('directory')!r})")
+        if not a.get("binding"):
+            errors.append("wrangler.jsonc: assets needs a binding, or the Worker "
+                          "cannot fall back to the static site")
+        # The live site serves /contact from contact.html and 307s /contact.html
+        # away. Every canonical on the site assumes it.
+        if a.get("html_handling") != "auto-trailing-slash":
+            errors.append("wrangler.jsonc: html_handling must be "
+                          "'auto-trailing-slash' or every URL moves")
+        if a.get("not_found_handling") != "404-page":
+            errors.append("wrangler.jsonc: not_found_handling must be '404-page', "
+                          "or the branded 404.html is built and never served")
+        first = a.get("run_worker_first")
+        if not (isinstance(first, list) and any(p.startswith("/api") for p in first)):
+            errors.append("wrangler.jsonc: run_worker_first must cover /api/*, so "
+                          "the enquiry endpoint reaches the Worker")
+
+if not os.path.exists(ENTRY):
+    errors.append("worker/index.js is missing: nothing routes /api/contact")
+else:
+    entry_src = open(ENTRY, encoding="utf-8").read()
+    if "/api/contact" not in entry_src:
+        errors.append("worker/index.js does not route /api/contact")
+    if "env.ASSETS.fetch" not in entry_src:
+        errors.append("worker/index.js never falls back to ASSETS, so every page "
+                      "on the site would 404")
+
+# ---------- .assetsignore must not exclude anything the site links to ----------
+# The asset directory is the repo root, so this file decides what is public. Get
+# a pattern slightly wrong and the stylesheet stops being uploaded, which is a
+# fully broken site that still builds green everywhere else.
+AI = os.path.join(ROOT, ".assetsignore")
+if not os.path.exists(AI):
+    warnings.append(".assetsignore is missing: the build tools, the brand "
+                    "artwork and BRAND.md are all uploaded and publicly served")
+else:
+    patterns = []
+    for line in open(AI, encoding="utf-8"):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.endswith("/"):
+            patterns.append(("dir", line.rstrip("/")))
+        elif line.startswith("*."):
+            patterns.append(("ext", line[1:]))
+        elif "*" not in line and "?" not in line:
+            patterns.append(("exact", line))
+        else:
+            errors.append(f".assetsignore: pattern {line!r} is a shape this check "
+                          f"does not understand, so it cannot prove the site "
+                          f"still ships. Simplify it or teach validate.py.")
+
+    def excluded(relpath):
+        for kind, pat in patterns:
+            if kind == "dir" and (relpath == pat or relpath.startswith(pat + "/")):
+                return pat + "/"
+            if kind == "ext" and relpath.endswith(pat):
+                return "*" + pat
+            if kind == "exact" and relpath == pat:
+                return pat
+        return None
+
+    # wrangler walks the asset directory with a plain recursive readdir and
+    # excludes only .assetsignore, _headers and _redirects by itself. Dotfiles
+    # are not excluded, and the asset directory is the repo root, so without
+    # this line the whole git history is uploaded and publicly served.
+    if not excluded(".git/config"):
+        errors.append(".assetsignore does not exclude .git/. The asset directory "
+                      "is the repo root and wrangler does not skip dotfiles, so "
+                      "the entire repository history would be served publicly.")
+
+    # Everything a page actually asks the browser to fetch, plus the files the
+    # platform and crawlers fetch by convention.
+    referenced = {"favicon.ico", "sitemap.xml", "robots.txt", "site.webmanifest",
+                  "_headers", "_redirects"}
+    for page in pages:
+        body = open(page, encoding="utf-8").read()
+        base = os.path.dirname(page)
+        referenced.add(rel(page))
+        for attr in re.findall(r'(?:href|src)="([^"]+)"', body):
+            if attr.startswith(("http://", "https://", "mailto:", "tel:", "#", "data:")):
+                continue
+            t = attr.split("#")[0].split("?")[0]
+            if not t:
+                continue
+            fp = os.path.normpath(os.path.join(base, t))
+            if os.path.exists(fp):
+                referenced.add(rel(fp))
+    mf = os.path.join(ROOT, "site.webmanifest")
+    if os.path.exists(mf):
+        for icon in re.findall(r'"src"\s*:\s*"([^"]+)"', open(mf, encoding="utf-8").read()):
+            fp = os.path.normpath(os.path.join(ROOT, icon.lstrip("/")))
+            if os.path.exists(fp):
+                referenced.add(rel(fp))
+
+    for r in sorted(referenced):
+        hit = excluded(r)
+        if hit:
+            errors.append(f".assetsignore: pattern '{hit}' excludes {r}, which the "
+                          f"site links to. It would 404 in production.")
 
 # ---------- no credential may ever be committed ----------
 # The whole point of reading the key from env is defeated by one paste. Sweep

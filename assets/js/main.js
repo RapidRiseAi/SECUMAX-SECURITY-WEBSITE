@@ -133,10 +133,10 @@
   });
 
   /* ---------- Contact form ----------
-     Posts to /api/contact, a Cloudflare Pages Function that relays the enquiry
-     to the ops mailbox through Resend. This is progressive enhancement over a
-     real <form action method="post">: with JavaScript off the browser posts
-     natively and the function answers with a confirmation page instead of JSON.
+     Posts to /api/contact, which the Worker relays to the ops mailbox through
+     Resend. This is progressive enhancement over a real <form action method>:
+     with JavaScript off the browser posts natively and the Worker answers with
+     a confirmation page instead of JSON.
 
      The previous version handed off to mailto:, which only worked for visitors
      with a desktop mail client configured. On a phone, or on webmail, it did
@@ -149,7 +149,7 @@
     var stamp = $('#formTs');
     var submit = $('#formSubmit');
     var submitLabel = submit ? submit.textContent : '';
-    // Stamped now, read by the function: a submission that arrives within
+    // Stamped now, read by the Worker: a submission that arrives within
     // three seconds of the form being ready was not typed by a person.
     if (stamp) stamp.value = String(Date.now());
 

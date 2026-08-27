@@ -1,0 +1,12 @@
+# Template for local development with `wrangler pages dev`.
+#
+# Copy to `.dev.vars` and fill in. `.dev.vars` is gitignored and must stay that
+# way: the real key belongs in the Cloudflare dashboard as a SECRET, never in
+# this repository. tools/validate.py fails the build if a key-shaped string
+# appears in a tracked file.
+#
+# Names must match what functions/api/contact.js reads from `env`.
+
+RESEND_API_KEY=re_put_the_key_here
+# MAIL_FROM=Greyman Protection website <noreply@greymanprotection.co.za>
+# MAIL_TO=ops@greymanprotection.co.za

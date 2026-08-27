@@ -132,15 +132,40 @@
     });
   });
 
-  /* ---------- Contact form: validate, then hand off to the mail client ---------- */
+  /* ---------- Contact form ----------
+     Posts to /api/contact, a Cloudflare Pages Function that relays the enquiry
+     to the ops mailbox through Resend. This is progressive enhancement over a
+     real <form action method="post">: with JavaScript off the browser posts
+     natively and the function answers with a confirmation page instead of JSON.
+
+     The previous version handed off to mailto:, which only worked for visitors
+     with a desktop mail client configured. On a phone, or on webmail, it did
+     nothing while still saying "sent", so enquiries were being lost. The
+     status messages below only ever claim what the server actually confirmed. */
   var form = $('#contactForm');
-  var note = $('#formNote');
+  var formNote = $('#formNote');
 
   if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!note) return;
+    var stamp = $('#formTs');
+    var submit = $('#formSubmit');
+    var submitLabel = submit ? submit.textContent : '';
+    // Stamped now, read by the function: a submission that arrives within
+    // three seconds of the form being ready was not typed by a person.
+    if (stamp) stamp.value = String(Date.now());
 
+    function say(text, cls) {
+      if (!formNote) return;
+      formNote.className = 'form__note' + (cls ? ' ' + cls : '');
+      formNote.textContent = text;
+    }
+
+    function busy(on) {
+      if (!submit) return;
+      submit.disabled = on;
+      submit.textContent = on ? 'Sending...' : submitLabel;
+    }
+
+    form.addEventListener('submit', function (e) {
       // Read fields via form.elements. `form.name` happens to work (HTMLFormElement is
       // [LegacyOverrideBuiltIns], so the named-element getter beats the built-in `name`
       // property) but it reads like a bug, so go through elements explicitly.
@@ -151,35 +176,50 @@
 
       var name    = field('name');
       var email   = field('email');
-      var service = field('service');
       var message = field('message');
 
-      note.className = 'form__note';
-
+      // Check before preventing the default, so that if this browser has no
+      // fetch the native post still happens and the server validates instead.
       if (!name || !email || !message) {
-        note.textContent = 'Please complete your name, email address and message.';
-        note.classList.add('err');
+        e.preventDefault();
+        say('Please complete your name, email address and message.', 'err');
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        note.textContent = 'That email address does not look right. Please check it.';
-        note.classList.add('err');
+        e.preventDefault();
+        say('That email address does not look right. Please check it.', 'err');
         return;
       }
+      if (!window.fetch || !window.FormData) return;   // let the browser post it
 
-      var subject = 'Website enquiry' + (service ? ': ' + service : '');
-      var body    = 'Name: ' + name +
-                    '\nEmail: ' + email +
-                    (service ? '\nService: ' + service : '') +
-                    '\n\n' + message;
+      e.preventDefault();
+      busy(true);
+      say('Sending your enquiry...', '');
 
-      window.location.href = 'mailto:ops@greymanprotection.co.za'
-        + '?subject=' + encodeURIComponent(subject)
-        + '&body='    + encodeURIComponent(body);
-
-      note.textContent = 'Opening your email app. If nothing happens, write to us directly at ops@greymanprotection.co.za';
-      note.classList.add('ok');
-      form.reset();
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'fetch' },
+        body: new FormData(form)
+      }).then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      }).then(function (r) {
+        busy(false);
+        if (r.ok && r.data && r.data.ok) {
+          say(r.data.message || 'Thank you. Your enquiry has been sent.', 'ok');
+          form.reset();
+          if (stamp) stamp.value = String(Date.now());
+          return;
+        }
+        // The server's message may carry a mailto: link for the fallback. This
+        // is our own endpoint, not third-party content, but set it as text and
+        // strip the markup rather than injecting HTML from a response.
+        var msg = (r.data && r.data.message ? r.data.message : '')
+          .replace(/<[^>]*>/g, '');
+        say(msg || 'We could not send that. Please email ops@greymanprotection.co.za directly.', 'err');
+      }).catch(function () {
+        busy(false);
+        say('We could not reach the server. Please check your connection, or email ops@greymanprotection.co.za directly.', 'err');
+      });
     });
   }
 
@@ -189,18 +229,23 @@
      once. The dismissal is kept in localStorage, which never leaves the device
      and is itself disclosed in the privacy policy. Wrapped because Safari in
      private mode throws on localStorage rather than returning null. */
-  var note = $('#privacyNote');
-  var noteOk = $('#privacyOk');
+  // NB the name. This block used to declare `var note` as well, in the same
+  // function scope as the contact form's `note` above: `var` is not block
+  // scoped, so the second declaration won the whole scope and every form
+  // status message was written into the privacy aside instead of under the
+  // send button. Keep these names distinct.
+  var pNote = $('#privacyNote');
+  var pNoteOk = $('#privacyOk');
   function noteSeen(v) {
     try {
       if (v === undefined) return localStorage.getItem('gm-privacy-note') === '1';
       localStorage.setItem('gm-privacy-note', '1');
     } catch (e) { return v === undefined ? true : undefined; }
   }
-  if (note && noteOk && !noteSeen()) {
-    note.hidden = false;
-    noteOk.addEventListener('click', function () {
-      note.hidden = true;
+  if (pNote && pNoteOk && !noteSeen()) {
+    pNote.hidden = false;
+    pNoteOk.addEventListener('click', function () {
+      pNote.hidden = true;
       noteSeen(true);
     });
   }

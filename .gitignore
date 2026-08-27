@@ -7,3 +7,8 @@ node_modules/
 # Python bytecode from the handover generators
 __pycache__/
 *.pyc
+
+# Local secrets for `wrangler pages dev`. The real RESEND_API_KEY lives in the
+# Cloudflare dashboard as a secret; see .dev.vars.example and README.
+.dev.vars
+.wrangler/

@@ -778,10 +778,22 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
 .field select:focus + label,.field select:valid + label{
   top:6px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-lift);
 }
+/* Honeypot. Off-screen rather than display:none, because some bots skip fields
+   that are display:none and the point is that they DO fill this one in. Hidden
+   from assistive technology and from tab order so no human ever reaches it. */
+.hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 .form__note{margin-top:14px;font-size:.9rem;min-height:1.4em}
-.form__note.ok{color:#4ade80}
-.form__note.err{color:var(--blue-lift)}
+/* Status colours, not brand colours. `err` used to be --blue-lift, which is the
+   same blue as every link and heading accent on the page: a failed enquiry read
+   as ordinary informational text and was easy to walk past. Amber is the one
+   place the palette bends, for the same reason the success state is green. */
+.form__note.ok{color:#4ADE80}
+.form__note.err{color:#F2B33D}
 .form__hint{margin-top:16px;font-size:.85rem;color:var(--muted)}
+/* The consent line links to the privacy policy. Colour alone is not enough to
+   mark a link inside muted body text, so it is underlined as well. */
+.form__hint a{color:var(--blue-lift);text-decoration:underline;text-underline-offset:2px}
+.form__hint a:hover{color:var(--ink)}
 
 /* =========================================================
    FOOTER
@@ -807,6 +819,15 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
 }
 .footer__bottom a{color:var(--muted)}
 .footer__bottom a:hover{color:var(--blue-lift)}
+/* Build credit. Deliberately quiet and on its own line, below the rule rather
+   than inside the legal row: a smaller size and no second border, so it reads
+   as a signature and never competes with the client's own name. */
+.footer__by{
+  padding-bottom:24px;margin-top:-6px;
+  font-size:.8rem;letter-spacing:.02em;color:var(--muted);opacity:.75;
+}
+.footer__by a{color:var(--muted);border-bottom:1px solid var(--line-2);padding-bottom:1px}
+.footer__by a:hover{color:var(--ink);border-bottom-color:var(--blue-lift)}
 
 /* =========================================================
    TO-TOP

@@ -72,11 +72,92 @@ across every page. It fails the build on:
 - a `_redirects` rule pointing at a page that does not exist
 - a missing `robots.txt`, `_headers` or `favicon.ico`
 
+## The contact form
+
+The enquiry form posts to `/api/contact`, which is a **Cloudflare Pages
+Function** at `functions/api/contact.js`. It validates the submission, turns it
+into an email, sends it through [Resend](https://resend.com) to the ops mailbox,
+and forgets it. There is no database, no queue and nothing stored.
+
+It was a `mailto:` handoff before. That only worked for visitors with a desktop
+mail client configured: on a phone, or on webmail, pressing send did nothing
+while the page still said the message had gone. Enquiries were being lost.
+
+```
+contact.html   <form action="/api/contact" method="post">
+assets/js/main.js   posts it with fetch and reports what the server said
+functions/api/contact.js   validates, relays through Resend, answers
+```
+
+With JavaScript off the browser posts the form natively and the function answers
+with a plain confirmation page instead of JSON, so the form still works.
+
+### Configuration (Cloudflare dashboard)
+
+The API key is **never** committed. `tools/validate.py` fails the build if
+anything that looks like one appears in a tracked file.
+
+Cloudflare dashboard → Workers & Pages → the project → **Settings** →
+**Variables and secrets** → Add, for **Production** and **Preview**:
+
+| Name | Type | Value |
+|---|---|---|
+| `RESEND_API_KEY` | **Secret** | the key from the Resend account |
+| `MAIL_FROM` | Text, optional | overrides the default From address |
+| `MAIL_TO` | Text, optional | overrides `ops@greymanprotection.co.za` |
+
+Add the key as a **Secret**, not as plaintext: a plaintext variable stays
+readable in the dashboard afterwards. Redeploy after adding it, because
+variables are bound at deploy time.
+
+Two things must be true in the Resend account or the send is rejected:
+
+1. `greymanprotection.co.za` is a **verified sending domain** (Resend → Domains,
+   then add the DNS records it gives you). Until it is, set `MAIL_FROM` to an
+   address on a domain that already is.
+2. The key has send permission.
+
+If `RESEND_API_KEY` is absent the endpoint answers `503` and tells the visitor
+to email the ops address instead. It never claims to have sent something it did
+not send.
+
+### Testing it
+
+```bash
+node tools/test-contact-function.mjs   # the function, with Resend stubbed
+```
+
+Sixteen cases: relay, honeypot, timing trap, rate limit, validation, header
+injection, HTML escaping, missing key, provider failure, no-JS HTML response.
+Nothing leaves the machine and no real key is needed.
+
+### Abuse
+
+Built in: a honeypot field, a three-second timing trap, a per-isolate IP rate
+limit of five in ten minutes, and length caps on every field. The rate limit is
+best effort, because it lives in the isolate's memory rather than in KV. If the
+form is ever actually abused, add a **WAF rate-limiting rule on `/api/contact`**
+in the Cloudflare dashboard: that runs at the edge, before the function is
+invoked, and needs no code change. Cloudflare Turnstile is the next step after
+that, and needs a site key in the page as well as a secret here.
+
 ## Deployment
 
 Publish the repo root to any static host. No build command. The host must serve
 extensionless URLs, which Cloudflare, Vercel, Netlify and GitHub Pages do by
 default; plain nginx needs `try_files $uri $uri.html`.
+
+The one host-specific part is the contact endpoint: `functions/` is Cloudflare
+**Pages**. On Workers static assets the same handler has to be mounted from a
+Worker entry point instead, and on any other host the form needs its own
+endpoint. Check it after a deploy:
+
+```bash
+curl -i -X GET https://www.greymanprotection.co.za/api/contact   # expect 405
+```
+
+`405` means the function is live. `404` means the platform is not running it and
+every enquiry is going nowhere.
 
 ## Before this goes public
 

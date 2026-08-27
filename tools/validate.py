@@ -290,6 +290,74 @@ for page in pages:
                           f"(aspect {rw/rh:.3f}); the image will be distorted "
                           f"or the reserved box will be wrong")
 
+# ---------- the contact form and its endpoint must agree ----------
+# Three files have to say the same thing: the form's action, the function that
+# answers it, and the mailbox it delivers to. They live apart, so check them
+# together. A form posting at a path with no function behind it looks fine in
+# the browser until someone actually sends an enquiry.
+FN = os.path.join(ROOT, "functions", "api", "contact.js")
+contact_html = os.path.join(ROOT, "contact.html")
+if os.path.exists(contact_html):
+    body = open(contact_html, encoding="utf-8").read()
+    m = re.search(r'<form[^>]*id="contactForm"[^>]*>', body)
+    if not m:
+        errors.append("contact.html: the enquiry form is gone")
+    else:
+        tag = m.group(0)
+        am = re.search(r'action="([^"]+)"', tag)
+        if not am:
+            errors.append("contact.html: the form has no action, so it cannot "
+                          "post without JavaScript")
+        elif am.group(1) != "/api/contact":
+            errors.append(f"contact.html: form posts to {am.group(1)} but the "
+                          f"function is at /api/contact")
+        if 'method="post"' not in tag:
+            errors.append("contact.html: the form is not method=post")
+        for needle, label in [('name="company"', "honeypot field"),
+                              ('id="formTs"', "timestamp field"),
+                              ('id="formNote"', "status line"),
+                              ('id="formSubmit"', "submit button")]:
+            if needle not in body:
+                errors.append(f"contact.html: missing {label} ({needle})")
+
+if not os.path.exists(FN):
+    errors.append("functions/api/contact.js is missing: the form would post into "
+                  "the 404 page")
+else:
+    fn = open(FN, encoding="utf-8").read()
+    if "ops@greymanprotection.co.za" not in fn:
+        errors.append("functions/api/contact.js: does not deliver to the ops mailbox")
+    if "env.RESEND_API_KEY" not in fn:
+        errors.append("functions/api/contact.js: the API key must come from env")
+    if "—" in fn:
+        errors.append("functions/api/contact.js: em dash present")
+
+# ---------- no credential may ever be committed ----------
+# The whole point of reading the key from env is defeated by one paste. Sweep
+# every tracked text file for the shapes of the keys this project touches.
+SECRET_PATTERNS = [
+    (r"\bre_[A-Za-z0-9_-]{16,}", "Resend API key"),
+    (r"\b0x[0-9A-Fa-f]{40}\b", "private key material"),
+    (r"AIza[0-9A-Za-z_-]{35}", "Google API key"),
+    (r"-----BEGIN [A-Z ]*PRIVATE KEY-----", "private key block"),
+]
+for dirpath, dirnames, filenames in os.walk(ROOT):
+    dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules")]
+    for f in filenames:
+        fp = os.path.join(dirpath, f)
+        if os.path.splitext(f)[1].lower() not in (
+                ".js", ".json", ".html", ".css", ".py", ".md", ".txt", ".yml",
+                ".yaml", ".toml", ".sh", ".xml", ""):
+            continue
+        try:
+            body = open(fp, encoding="utf-8").read()
+        except (UnicodeDecodeError, OSError):
+            continue
+        for pat, what in SECRET_PATTERNS:
+            if re.search(pat, body):
+                errors.append(f"{rel(fp)}: looks like a committed {what}. "
+                              f"Secrets belong in Cloudflare env vars, never in git.")
+
 # ---------- the printed QR code's target must keep existing ----------
 # A QR on a business card cannot be corrected after the print run. This ties the
 # build to it: if the page the code points at is renamed or deleted, or the

@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="assets/css/styles.css?v=cab901cc1b" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=8eb224bdd2" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -202,14 +202,22 @@
           <div class="contact__form reveal" style="--d:.1s">
             <h2 class="section__title section__title--sm">Send an enquiry</h2>
             <p class="form__hint">Every enquiry is treated in confidence.</p>
-            <form id="contactForm" novalidate>
+            <!-- Posts to a Cloudflare Pages Function, which relays it to the ops
+                 mailbox. action/method are set so the form still works with
+                 JavaScript off: the function answers a plain form post with a
+                 confirmation page instead of JSON. -->
+            <form id="contactForm" action="/api/contact" method="post" novalidate>
               <div class="field">
-                <input type="text" id="name" name="name" placeholder=" " required />
+                <input type="text" id="name" name="name" placeholder=" " maxlength="120" required />
                 <label for="name">Your name</label>
               </div>
               <div class="field">
-                <input type="email" id="email" name="email" placeholder=" " required />
+                <input type="email" id="email" name="email" placeholder=" " maxlength="160" required />
                 <label for="email">Email address</label>
+              </div>
+              <div class="field">
+                <input type="tel" id="phone" name="phone" placeholder=" " maxlength="40" />
+                <label for="phone">Phone number, optional</label>
               </div>
               <div class="field">
                 <select id="service" name="service">
@@ -223,11 +231,21 @@
                 </select>
               </div>
               <div class="field">
-                <textarea id="message" name="message" rows="5" placeholder=" " required></textarea>
+                <textarea id="message" name="message" rows="5" placeholder=" "
+                          maxlength="5000" required></textarea>
                 <label for="message">How can we help?</label>
               </div>
-              <button type="submit" class="btn btn--blue btn--block btn--lg">Send enquiry</button>
+              <!-- Honeypot: no human sees or tabs to this. Anything that fills it
+                   in is automated, and the function drops the submission. -->
+              <div class="hp" aria-hidden="true">
+                <label for="company">Company</label>
+                <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" />
+              </div>
+              <input type="hidden" name="ts" id="formTs" value="" />
+              <button type="submit" class="btn btn--blue btn--block btn--lg" id="formSubmit">Send enquiry</button>
               <p class="form__note" id="formNote" role="status" aria-live="polite"></p>
+              <p class="form__hint">By sending this you agree to us handling your details as
+                 set out in our <a href="privacy.html">Privacy Policy</a>.</p>
             </form>
           </div>
         </div>
@@ -328,6 +346,9 @@
         <span>466 Karel Trichardt Street, Mountainview, Pretoria</span>
         <span>SECURITY &middot; PROTECTION &middot; INTELLIGENCE &middot; CONTROL</span>
       </div>
+
+      <p class="footer__by">Powered by <a href="https://rapidriseai.com" rel="noopener noreferrer"
+         target="_blank">Rapid Rise AI</a></p>
     </div>
   </footer>
 
@@ -352,6 +373,6 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
 
-  <script src="assets/js/main.js?v=df8c8f9525" defer></script>
+  <script src="assets/js/main.js?v=76e77e5aa2" defer></script>
 </body>
 </html>

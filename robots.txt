@@ -4,5 +4,7 @@ Allow: /
 # Generated pages only; the brand library and build tools are not content.
 Disallow: /assets/brand/
 Disallow: /tools/
+# The enquiry endpoint. Nothing to index, and no reason to be crawled.
+Disallow: /api/
 
 Sitemap: https://www.greymanprotection.co.za/sitemap.xml

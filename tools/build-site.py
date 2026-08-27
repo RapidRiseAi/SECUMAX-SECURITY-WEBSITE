@@ -79,6 +79,15 @@ DIRECTORS = [
     ("Jacques", "Director", "+27 67 161 2570", "27671612570"),
 ]
 
+# Build credit in the footer. Both verified to return 200 before being linked.
+BUILDER = "Rapid Rise AI"
+BUILDER_URL = "https://rapidriseai.com"
+
+# Where the contact form posts. A Cloudflare Pages Function at this path
+# (functions/api/contact.js) relays it to EMAIL through Resend. Kept as a
+# constant so the page, the function and the validator cannot disagree.
+FORM_ENDPOINT = "/api/contact"
+
 # ---------------------------------------------------------------------------
 # Taxonomy: the six divisions, verbatim in substance from the company profile.
 # ---------------------------------------------------------------------------
@@ -516,6 +525,9 @@ def footer(p):
         <span>{ADDRESS}</span>
         <span>{TAGLINE}</span>
       </div>
+
+      <p class="footer__by">Powered by <a href="{BUILDER_URL}" rel="noopener noreferrer"
+         target="_blank">{BUILDER}</a></p>
     </div>
   </footer>
 
@@ -943,14 +955,22 @@ def page_contact():
           <div class="contact__form reveal" style="--d:.1s">
             <h2 class="section__title section__title--sm">Send an enquiry</h2>
             <p class="form__hint">Every enquiry is treated in confidence.</p>
-            <form id="contactForm" novalidate>
+            <!-- Posts to a Cloudflare Pages Function, which relays it to the ops
+                 mailbox. action/method are set so the form still works with
+                 JavaScript off: the function answers a plain form post with a
+                 confirmation page instead of JSON. -->
+            <form id="contactForm" action="{FORM_ENDPOINT}" method="post" novalidate>
               <div class="field">
-                <input type="text" id="name" name="name" placeholder=" " required />
+                <input type="text" id="name" name="name" placeholder=" " maxlength="120" required />
                 <label for="name">Your name</label>
               </div>
               <div class="field">
-                <input type="email" id="email" name="email" placeholder=" " required />
+                <input type="email" id="email" name="email" placeholder=" " maxlength="160" required />
                 <label for="email">Email address</label>
+              </div>
+              <div class="field">
+                <input type="tel" id="phone" name="phone" placeholder=" " maxlength="40" />
+                <label for="phone">Phone number, optional</label>
               </div>
               <div class="field">
                 <select id="service" name="service">
@@ -959,11 +979,21 @@ def page_contact():
                 </select>
               </div>
               <div class="field">
-                <textarea id="message" name="message" rows="5" placeholder=" " required></textarea>
+                <textarea id="message" name="message" rows="5" placeholder=" "
+                          maxlength="5000" required></textarea>
                 <label for="message">How can we help?</label>
               </div>
-              <button type="submit" class="btn btn--blue btn--block btn--lg">Send enquiry</button>
+              <!-- Honeypot: no human sees or tabs to this. Anything that fills it
+                   in is automated, and the function drops the submission. -->
+              <div class="hp" aria-hidden="true">
+                <label for="company">Company</label>
+                <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" />
+              </div>
+              <input type="hidden" name="ts" id="formTs" value="" />
+              <button type="submit" class="btn btn--blue btn--block btn--lg" id="formSubmit">Send enquiry</button>
               <p class="form__note" id="formNote" role="status" aria-live="polite"></p>
+              <p class="form__hint">By sending this you agree to us handling your details as
+                 set out in our <a href="{p}privacy.html">Privacy Policy</a>.</p>
             </form>
           </div>
         </div>
@@ -1207,7 +1237,9 @@ def robots():
             "Allow: /\n\n"
             "# Generated pages only; the brand library and build tools are not content.\n"
             "Disallow: /assets/brand/\n"
-            "Disallow: /tools/\n\n"
+            "Disallow: /tools/\n"
+            "# The enquiry endpoint. Nothing to index, and no reason to be crawled.\n"
+            "Disallow: /api/\n\n"
             f"Sitemap: {DOMAIN}/sitemap.xml\n")
 
 
@@ -1266,8 +1298,9 @@ def headers():
 # Written against what this site ACTUALLY does, which is unusually little:
 #
 #   * it sets no cookies and runs no analytics
-#   * the contact form is a mailto: handoff, so the message is composed in the
-#     visitor's own mail client and this site never receives or stores it
+#   * the contact form posts to a Pages Function which relays the message to the
+#     ops mailbox through Resend, so Resend is an operator under POPIA and the
+#     notice has to say so; nothing is written to a database
 #   * it does load Google Fonts, which is a third-party request
 #
 # Saying otherwise would be as much a fabrication as an invented certification,
@@ -1350,14 +1383,21 @@ def page_privacy():
                 "cannot read it.",
             ]),
             ("The contact form", [
-                "<strong>The form on our contact page does not submit anything to this "
-                "website.</strong> It assembles what you typed into a message and opens "
-                "it in your own email application, for you to send. Until you press "
-                "send in your own mail client, nothing has been transmitted, and this "
-                "site never receives or stores what you typed.",
-                "Once you do email us, we hold what you sent: your name, your email "
-                "address, and whatever you chose to tell us. We use it to answer you "
-                "and to carry out any work you engage us for.",
+                "When you send the form on our contact page, what you typed is posted to "
+                "this site and forwarded to our ops mailbox as an email. That is your "
+                "name, your email address, your phone number if you gave one, the "
+                "division you selected, and your message.",
+                "The forwarding is done for us by <a href=\"https://resend.com/legal/dpa\" "
+                "rel=\"noopener noreferrer\" target=\"_blank\">Resend</a>, an email "
+                "delivery provider acting as our operator under POPIA. Your message "
+                "passes through their systems in the course of being delivered to us. "
+                "The submission itself is not written to any database on this site.",
+                "Along with the message we record the country your request came from and "
+                "the time it was sent. That is used to spot automated abuse of the form, "
+                "not to identify you.",
+                "We use what you send to answer you and to carry out any work you engage "
+                "us for. You are equally welcome to skip the form and email "
+                f'<a href="mailto:{EMAIL}">{EMAIL}</a> directly.',
             ]),
             ("Information we hold about clients", [
                 "Where you engage us, we hold what the mandate requires. That varies by "

@@ -173,10 +173,14 @@ at the sizes these are actually used (96px and below).
 in the footer chrome.
 
 They are written against **what this site actually does**, which is unusually
-little: it sets no cookies, runs no analytics, and its contact form is a
-`mailto:` handoff, so the message is composed in the visitor's own mail client
-and this site never receives or stores it. It does load Google Fonts, which is a
-third-party request, and that is disclosed.
+little: it sets no cookies and runs no analytics. It does load Google Fonts,
+which is a third-party request, and that is disclosed.
+
+The contact form posts to a Cloudflare Pages Function which relays the enquiry
+to the ops mailbox through Resend. Resend is therefore an **operator** under
+POPIA and the policy names it. Nothing is written to a database. If that
+plumbing changes, the "The contact form" block in `page_privacy()` has to change
+with it: the policy is only worth anything while it describes the real thing.
 
 **The notice is not a cookie banner.** With no cookies there is nothing to
 consent to, and a consent gate would be theatre. It states the position once and
@@ -233,7 +237,15 @@ hand-edit the HTML, because the next regenerate overwrites it.
 python3 tools/build-brand-assets.py   # logo, favicons, favicon.ico, OG card
 python3 tools/build-site.py           # 11 pages + sitemap, robots, redirects, headers
 python3 tools/validate.py             # must be green before pushing
+node   tools/test-contact-function.mjs   # the enquiry endpoint, Resend stubbed
 ```
+
+`functions/api/contact.js` is the third shared file. It is the only server-side
+code in the project and the only path an enquiry travels, so a change there is a
+change to whether the business hears from anyone. It reads its credentials from
+`env` and nothing else: **no key, of any provider, is ever committed.** The
+validator sweeps every tracked file for key-shaped strings and fails the build
+on a hit.
 
 ### Generated, not hand-written
 
@@ -308,7 +320,11 @@ should stay narrower than the client's capability, not wider.
 3. Firearm training accreditation, if "accredited" is to appear.
 4. Confirmation of the Guarding and Site Security wording.
 5. The final domain.
-6. Whether `ops@greymanprotection.co.za` is live and monitored: the contact form
-   hands off to it via `mailto:`, so an unmonitored mailbox loses every enquiry.
+6. Whether `ops@greymanprotection.co.za` is live and monitored: every enquiry is
+   delivered there and nowhere else, so an unmonitored mailbox loses all of them.
+   Also: `RESEND_API_KEY` set as a secret in Cloudflare, and
+   `greymanprotection.co.za` verified as a sending domain in Resend. Until both
+   are done the form answers honestly that it is not configured, which is better
+   than losing enquiries but is not shippable. See README, "The contact form".
 7. Registration of an Information Officer with the Information Regulator, and a
    lawyer's review of the three legal pages before relying on them.

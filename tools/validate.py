@@ -101,7 +101,7 @@ for page in pages:
         label = "canonical" if "canonical" in attr else "og:url"
         if url.endswith(".html"):
             errors.append(f"{P}: {label} ends in .html but the host redirects those -> {url}")
-        if not url.startswith("https://www.integriforensicservices.com"):
+        if not url.startswith("https://www.greymanprotection.co.za"):
             errors.append(f"{P}: {label} is not on the canonical host -> {url}")
 
     # ---- 6. correct relative prefix ----
@@ -114,10 +114,9 @@ for page in pages:
             errors.append(f"{P}: uses '../assets/' but is at the repo root")
 
     # ---- 7. brand hygiene: no leftovers, no fabrication ----
-    # The canonical host is still INTEGRI's until the client moves the domain,
-    # so strip absolute self-URLs before the brand sweep or every page reports
-    # a false leftover.
-    src_copy = src.replace("https://www.integriforensicservices.com", "https://SELF")
+    # Strip absolute self-URLs before the brand sweep so the site's own domain
+    # never reads as a leftover from a previous brand.
+    src_copy = src.replace("https://www.greymanprotection.co.za", "https://SELF")
     for pat, msg in [
         (r"SECUMAX|secumax", "leftover SECUMAX branding"),
         (r"\bINTEGRI\b(?!\w)|Integri(?!ty)", "leftover INTEGRI branding in copy"),
@@ -191,7 +190,7 @@ for rel_path in ("assets/css/styles.css", "assets/js/main.js", "site.webmanifest
     if not os.path.exists(fp):
         continue
     body = open(fp, encoding="utf-8").read()
-    if "ops@integriforensicservices" in body:
+    if "integriforensicservices" in body:
         errors.append(f"{rel_path}: superseded INTEGRI mailbox, use ops@greymanprotection.co.za")
     if "\u2014" in body:
         errors.append(f"{rel_path}: em dash present ({body.count(chr(8212))}) — the site is em-dash free")

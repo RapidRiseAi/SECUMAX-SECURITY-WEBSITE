@@ -22,16 +22,22 @@ place, so do not "fix" either to match the other.
 
 ### Domain
 
-The site still publishes on `integriforensicservices.com`, the previous brand's
-domain, at the client's instruction until they move it. It lives in exactly one
-place, `DOMAIN` in `tools/build-site.py`, so the move is a one-line change plus a
-regenerate.
+The site publishes on **`greymanprotection.co.za`**, confirmed live and serving
+this build before the switch was made. It lives in exactly one place, `DOMAIN`
+in `tools/build-site.py`.
 
-**Two things depend on it and will break silently when it moves:**
+The old `integriforensicservices.com` also still resolves to this site. Leaving
+canonicals pointed at it told search engines the old domain was authoritative,
+which is why they were switched. Point that domain at a 301 to this one when
+convenient.
+
+**Two things depend on it and will break silently if it moves again:**
 
 1. Every `rel="canonical"` and `og:url`.
-2. Any printed QR code. The previous brand's codes were deleted rather than
-   carried over. Do not print a new one until the domain is final.
+2. The printed contact QR code (`brand-assets/qr/`). It encodes
+   `https://www.greymanprotection.co.za/contact`, which was verified live before
+   generation. A moved domain means a reprint. The vCard QR beside it carries no
+   URL dependency and survives a move.
 
 Note also: the company profile PDF prints `www.greymanprotection.com` while the
 working mailbox is `.co.za`. The site follows the mailbox. The PDF should be

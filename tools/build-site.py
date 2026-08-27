@@ -49,8 +49,10 @@ def division_symbols():
 
 MARK_W, MARK_H = img_size("assets/img/greyman-mark.png")
 
-# --- the one place the domain lives; the client is moving it later ----------
-DOMAIN = "https://www.integriforensicservices.com"
+# The one place the domain lives. Switched to greymanprotection.co.za once that
+# host was confirmed live and serving this site: leaving canonicals pointed at
+# the old INTEGRI domain told search engines the old one was authoritative.
+DOMAIN = "https://www.greymanprotection.co.za"
 BRAND = "Greyman Protection"
 TAGLINE = "SECURITY &middot; PROTECTION &middot; INTELLIGENCE &middot; CONTROL"
 EMAIL = "ops@greymanprotection.co.za"

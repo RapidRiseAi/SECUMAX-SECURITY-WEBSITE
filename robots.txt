@@ -5,4 +5,4 @@ Allow: /
 Disallow: /assets/brand/
 Disallow: /tools/
 
-Sitemap: https://www.integriforensicservices.com/sitemap.xml
+Sitemap: https://www.greymanprotection.co.za/sitemap.xml

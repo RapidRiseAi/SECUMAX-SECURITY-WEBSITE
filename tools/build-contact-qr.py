@@ -21,11 +21,28 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
-# The client is moving the domain. Set this to the FINAL domain before
-# generating anything that gets printed: a QR cannot be corrected after a
-# print run, and the artwork this produced for the previous brand was
-# deleted for exactly that reason.
-URL = "https://www.integriforensicservices.com/contact"
+# The FINAL domain. A QR cannot be corrected after a print run, so this was
+# confirmed live and returning 200 at /contact before anything was generated;
+# the previous brand's artwork was deleted rather than carried over for exactly
+# that reason. Do not change this without re-verifying and re-printing.
+URL = "https://www.greymanprotection.co.za/contact"
+
+# A second code that depends on no domain at all: scanning it saves the company
+# to the reader's contacts. Nothing to keep alive, nothing to expire.
+VCARD = "\r\n".join([
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    "N:;Greyman Protection;;;",
+    "FN:Greyman Protection",
+    "ORG:Greyman Protection",
+    "TITLE:Security, Protection, Intelligence, Control",
+    "TEL;TYPE=WORK,VOICE:+27711183257",
+    "TEL;TYPE=WORK,VOICE:+27671612570",
+    "EMAIL;TYPE=WORK:ops@greymanprotection.co.za",
+    "ADR;TYPE=WORK:;;466 Karel Trichardt Street;Mountainview, Pretoria;;;South Africa",
+    "URL:https://www.greymanprotection.co.za",
+    "END:VCARD",
+])
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "brand-assets", "qr")
 CREST = os.path.join(ROOT, "assets", "img", "greyman-mark.png")
@@ -140,8 +157,33 @@ for name in written:
         results.append(f"{mm}mm:{'OK' if ok else 'FAIL'}")
     print(f"  {name:44s} " + "  ".join(results))
 
+# ---- the domain-free alternative -----------------------------------------
+# A vCard carries far more data than a URL, so it needs a denser symbol and a
+# larger print. Measured below rather than assumed: if it does not decode at a
+# size that fits a business card, that is worth knowing before the print run.
+vq = segno.make(VCARD, error="m")
+print(f"\nvCard QR: version {vq.version}, "
+      f"{vq.symbol_size(scale=1, border=0)[0]} modules, ECC {vq.error.upper()}")
+vq.save(path("greyman-vcard-qr.svg"), scale=10, border=BORDER,
+        dark="#000000", light="#ffffff")
+vq.save(path("greyman-vcard-qr.png"), scale=SCALE, border=BORDER,
+        dark="#000000", light="#ffffff")
+written += ["greyman-vcard-qr.svg", "greyman-vcard-qr.png"]
+
+vgray = cv2.cvtColor(np.array(Image.open(path("greyman-vcard-qr.png")).convert("RGB")),
+                     cv2.COLOR_RGB2GRAY)
+vres = []
+for mm in (40, 35, 30, 25, 22, 20):
+    px = max(1, round(mm / 25.4 * DPI))
+    small = cv2.resize(vgray, (px, px), interpolation=cv2.INTER_AREA)
+    ok = det.detectAndDecode(small)[0].startswith("BEGIN:VCARD")
+    if not ok and mm >= 30:
+        failed.append(f"vcard @ {mm}mm")
+    vres.append(f"{mm}mm:{'OK' if ok else 'FAIL'}")
+print("  greyman-vcard-qr.png                         " + "  ".join(vres))
+
 print(f"\nwrote {len(written)} file(s) to {os.path.relpath(OUT, ROOT)}")
 if failed:
     print("FAILED to decode: " + ", ".join(failed))
     sys.exit(1)
-print("every variant decodes to the exact URL at every tested print size")
+print("every variant decodes at every size it is expected to")

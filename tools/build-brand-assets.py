@@ -67,18 +67,16 @@ def trim(im, thresh=8):
     return rgba.crop((x0, y0, x1, y1))
 
 
-def pad_square(im, pad_frac=0.05):
-    side = int(max(im.size) * (1 + pad_frac * 2))
-    sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
-    sq.alpha_composite(im, ((side - im.width) // 2, (side - im.height) // 2))
-    return sq
-
-
 # ---- 1. the two variants the site actually uses -------------------------
-mark = pad_square(trim(brand("mark-for-dark.png")))
+# Trimmed to content and shipped at their NATURAL aspect. Padding these into a
+# square canvas was a mistake: the figure is portrait (roughly 3:4), so a square
+# file rendered at 42x42 drew it ~31px wide floating in dead space, and every
+# consumer then had to guess how much of the box was real. The pages declare the
+# true intrinsic size and size on one axis, so the browser keeps the ratio.
+mark = trim(brand("mark-for-dark.png"))
 mark.save(out("greyman-mark.png"), optimize=True)
 
-lockup = pad_square(trim(brand("lockup-for-dark.png")), pad_frac=0.03)
+lockup = trim(brand("lockup-for-dark.png"))
 lockup.save(out("greyman-lockup.png"), optimize=True)
 
 # ---- 2. favicons, from the solid-black mark so they read on any tab -----
@@ -90,15 +88,24 @@ cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
 half = max(x1 - x0, y1 - y0) // 2 + 26
 fav = solid.crop((max(0, cx - half), max(0, cy - half),
                   min(solid.width, cx + half), min(solid.height, cy + half)))
-if fav.width != fav.height:                      # keep it square after clamping
+# An icon file has to be square. Get there by padding on black, never by
+# resizing a non-square crop to a square, which would squash the figure.
+if fav.width != fav.height:
     side = max(fav.size)
     sq = Image.new("RGB", (side, side), (0, 0, 0))
     sq.paste(fav, ((side - fav.width) // 2, (side - fav.height) // 2))
     fav = sq
+assert fav.width == fav.height, "favicon source must be square before resizing"
 
 for size, name in [(32, "favicon-32.png"), (192, "favicon-192.png"),
                    (512, "favicon-512.png"), (180, "apple-touch-icon.png")]:
     fav.resize((size, size), Image.LANCZOS).save(out(name), optimize=True)
+
+# favicon.ico at the repo root: still what some crawlers, feed readers and
+# older browsers fetch by convention, whatever <link rel="icon"> says.
+fav.resize((64, 64), Image.LANCZOS).save(
+    os.path.join(ROOT, "favicon.ico"), format="ICO",
+    sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
 
 # ---- 3. Open Graph card ------------------------------------------------
 # Fonts are embedded as data URIs. A <link> to Google Fonts races the

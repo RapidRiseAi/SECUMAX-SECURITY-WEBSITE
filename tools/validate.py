@@ -193,6 +193,94 @@ for page in pages:
     if n:
         errors.append(f"{rel(page)}: {n} em dash(es) — the site is em-dash free")
 
+# ---------- production files ----------
+# sitemap, robots, redirects and icons rot silently: nothing on the page breaks
+# when they go stale, so nothing tells you. Check them here.
+def _read(rel):
+    fp = os.path.join(ROOT, rel)
+    return open(fp, encoding="utf-8").read() if os.path.exists(fp) else None
+
+
+sm = _read("sitemap.xml")
+if sm is None:
+    errors.append("sitemap.xml is missing")
+else:
+    listed = set(re.findall(r"<loc>([^<]+)</loc>", sm))
+    for page in pages:
+        body = open(page, encoding="utf-8").read()
+        m = re.search(r'rel="canonical" href="([^"]+)"', body)
+        if not m:
+            continue
+        canon, P = m.group(1), rel(page)
+        # 404 must never be advertised for indexing
+        if P == "404.html":
+            if canon in listed:
+                errors.append("sitemap.xml lists the 404 page")
+            if 'content="noindex' not in body:
+                errors.append("404.html must be noindex")
+        elif canon not in listed:
+            errors.append(f"sitemap.xml is missing {P} ({canon})")
+    for loc in listed:
+        if loc.endswith(".html"):
+            errors.append(f"sitemap.xml lists a .html URL the host redirects away: {loc}")
+
+rb = _read("robots.txt")
+if rb is None:
+    errors.append("robots.txt is missing")
+elif "sitemap.xml" not in rb.lower():
+    errors.append("robots.txt does not point at the sitemap")
+
+rd = _read("_redirects")
+if rd is None:
+    errors.append("_redirects is missing")
+else:
+    for line in rd.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) < 2:
+            errors.append(f"_redirects: cannot parse -> {line}")
+            continue
+        src, dest = parts[0], parts[1]
+        target = dest.lstrip("/")
+        candidates = [target, target + ".html", os.path.join(target, "index.html")]
+        if not any(os.path.exists(os.path.join(ROOT, c)) for c in candidates):
+            errors.append(f"_redirects: {src} points at a missing page -> {dest}")
+        if src.lstrip("/").split("#")[0] in ("", "index.html"):
+            errors.append(f"_redirects: refusing to redirect the home page -> {line}")
+
+if _read("_headers") is None:
+    errors.append("_headers is missing")
+if not os.path.exists(os.path.join(ROOT, "favicon.ico")):
+    errors.append("favicon.ico is missing from the repo root")
+
+# every shipped <img> must declare the file's real intrinsic size, or the
+# reserved box is the wrong shape and the layout shifts when the art loads
+from PIL import Image as _Im
+for page in pages:
+    body = open(page, encoding="utf-8").read()
+    P = rel(page)
+    for tag in re.findall(r"<img[^>]*>", body):
+        src_m = re.search(r'src="([^"]+)"', tag)
+        w_m = re.search(r'width="(\d+)"', tag)
+        h_m = re.search(r'height="(\d+)"', tag)
+        if not src_m:
+            continue
+        if not (w_m and h_m):
+            errors.append(f"{P}: <img> without width/height -> {src_m.group(1)}")
+            continue
+        fp = os.path.normpath(os.path.join(os.path.dirname(page), src_m.group(1)))
+        if not os.path.exists(fp):
+            continue
+        rw, rh = _Im.open(fp).size
+        dw, dh = int(w_m.group(1)), int(h_m.group(1))
+        if abs(dw / dh - rw / rh) > 0.01:
+            errors.append(f"{P}: {os.path.basename(fp)} declared {dw}x{dh} "
+                          f"(aspect {dw/dh:.3f}) but the file is {rw}x{rh} "
+                          f"(aspect {rw/rh:.3f}); the image will be distorted "
+                          f"or the reserved box will be wrong")
+
 # ---------- report ----------
 if parked_counts:
     total = sum(parked_counts.values())

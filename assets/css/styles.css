@@ -183,7 +183,8 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
    between two blue rules that fill out to the same width. The <img> beside it
    is the figure alone, so the name is never duplicated. */
 .brand{display:flex;align-items:center;gap:11px;flex:none}
-.brand__mark{width:42px;height:42px;flex:none}
+/* one axis only: the art is portrait, so pinning both squashes it */
+.brand__mark{height:42px;width:auto;flex:none}
 .brand__text{display:flex;flex-direction:column;line-height:1;align-items:stretch}
 .brand__text strong{
   font-family:'Chakra Petch',sans-serif;font-weight:700;

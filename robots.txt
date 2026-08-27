@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Generated pages only; the brand library and build tools are not content.
+Disallow: /assets/brand/
+Disallow: /tools/
+
+Sitemap: https://www.integriforensicservices.com/sitemap.xml

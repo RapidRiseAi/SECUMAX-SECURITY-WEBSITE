@@ -1,0 +1,14 @@
+# Retired INTEGRI-era division pages. See BRAND.md section 4.
+# These URLs were live, so they redirect rather than 404.
+/services/investigation          /services/investigations         301
+/services/investigation.html     /services/investigations         301
+/services/forensic               /services/investigations         301
+/services/forensic.html          /services/investigations         301
+/services/polygraph              /services/investigations         301
+/services/polygraph.html         /services/investigations         301
+/services/protection             /services/close-protection       301
+/services/protection.html        /services/close-protection       301
+/services/security               /services/guarding               301
+/services/security.html          /services/guarding               301
+/services/specialized            /services/mining-security        301
+/services/specialized.html       /services/mining-security        301

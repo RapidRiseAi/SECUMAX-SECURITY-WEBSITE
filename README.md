@@ -26,10 +26,14 @@ to-top button. That chrome is emitted from one source, so **do not hand-edit the
 HTML**: the next regenerate overwrites it. Edit the generator instead.
 
 ```bash
-python3 tools/build-brand-assets.py   # logo, favicons, OG card, from the master logo
-python3 tools/build-site.py           # all 10 pages from the taxonomy
+python3 tools/build-brand-assets.py   # logo, favicons, favicon.ico, OG card
+python3 tools/build-site.py           # 11 pages + sitemap, robots, _redirects, _headers
 python3 tools/validate.py             # must be green before pushing
 ```
+
+`build-site.py` also emits `sitemap.xml`, `robots.txt`, `404.html`, `_redirects`
+and `_headers` from the same page list that builds the pages, so they cannot
+drift. Do not hand-edit those either.
 
 Content and taxonomy live in `DIVISIONS`, `WHY`, `STEPS` and `CLIENTS` at the top
 of `tools/build-site.py`.
@@ -63,6 +67,10 @@ across every page. It fails the build on:
 - any email or phone number outside the approved set
 - em dashes, which the site does not use
 - canonicals or `og:url` ending in `.html`, which the host redirects away
+- an `<img>` whose declared width/height does not match the file's real aspect
+- a page missing from `sitemap.xml`, or the 404 wrongly listed in it
+- a `_redirects` rule pointing at a page that does not exist
+- a missing `robots.txt`, `_headers` or `favicon.ico`
 
 ## Deployment
 

@@ -146,10 +146,45 @@ Pages are **generated**. Edit `tools/build-site.py` and re-run it; do not
 hand-edit the HTML, because the next regenerate overwrites it.
 
 ```
-python3 tools/build-brand-assets.py   # logo, favicons, OG card
-python3 tools/build-site.py           # all 10 pages
+python3 tools/build-brand-assets.py   # logo, favicons, favicon.ico, OG card
+python3 tools/build-site.py           # 11 pages + sitemap, robots, redirects, headers
 python3 tools/validate.py             # must be green before pushing
 ```
+
+### Generated, not hand-written
+
+`build-site.py` emits these too, from the same page list that builds the pages,
+so they cannot drift out of sync with the site:
+
+| File | What it is |
+|---|---|
+| `sitemap.xml` | The 10 indexable pages. The 404 is deliberately excluded. |
+| `robots.txt` | Points at the sitemap; hides `assets/brand/` and `tools/`. |
+| `404.html` | Full chrome, `noindex`, routes into the six divisions. |
+| `_redirects` | The six retired INTEGRI division URLs, 301 to their nearest survivor. |
+| `_headers` | Security headers, plus long immutable caching for images only. |
+
+CSS and JS get a week rather than a year: filenames are not content-hashed, and
+a stale stylesheet is a broken page where a stale image is just an old picture.
+
+Structured data (`ProfessionalService` JSON-LD) is emitted on the **home page
+only**, so search engines get one description of the entity rather than ten
+competing copies. It asserts nothing that is not in the company profile: no
+rating, no price range, no opening hours, no accreditation.
+
+### Logo geometry
+
+The supplied art is portrait, roughly 3:4. Ship it at its natural aspect: pages
+declare the file's **real** intrinsic `width`/`height` (read from the file at
+build time, never typed by hand) and the CSS sizes one axis with the other
+`auto`.
+
+An earlier build padded the art into a square canvas, so a 42x42 box drew the
+figure ~31px wide floating in dead space. Icon files must be square, and get
+there by **padding on black**, never by resizing non-square art to a square.
+
+`tools/validate.py` fails the build when a declared aspect does not match the
+file's real one, which is the check that would have caught this.
 
 ---
 

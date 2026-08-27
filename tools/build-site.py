@@ -15,10 +15,27 @@ registration claim: the Greyman profile asserts neither, and the previous
 INTEGRI entity's registration does not transfer to a different trading name.
 Add them only when the client supplies the numbers.
 """
+import datetime
 import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def img_size(rel):
+    """Intrinsic pixel size of a shipped image, read from the file itself.
+
+    Hard-coding width/height means the attributes drift the moment the art is
+    regenerated at a different size, and a wrong pair reserves the wrong box
+    and shifts the layout. Read them instead.
+    """
+    from PIL import Image
+    with Image.open(os.path.join(ROOT, rel)) as im:
+        return im.size
+
+
+MARK_W, MARK_H = img_size("assets/img/greyman-mark.png")
+LOCKUP_W, LOCKUP_H = img_size("assets/img/greyman-lockup.png")
 
 # --- the one place the domain lives; the client is moving it later ----------
 DOMAIN = "https://www.integriforensicservices.com"
@@ -236,12 +253,57 @@ def ico(name, cls="ico"):
     return f'<svg class="{cls}" aria-hidden="true"><use href="#{name}"/></svg>'
 
 
+JSONLD = """  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "%(brand)s",
+    "description": "Specialist security, protection and investigative services for individuals, businesses, mining operations and organisations across South Africa.",
+    "url": "%(domain)s/",
+    "email": "%(email)s",
+    "image": "%(domain)s/assets/img/og-image.png",
+    "logo": "%(domain)s/assets/img/greyman-mark.png",
+    "telephone": "+27711183257",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "466 Karel Trichardt Street",
+      "addressLocality": "Mountainview, Pretoria",
+      "addressCountry": "ZA"
+    },
+    "areaServed": { "@type": "Country", "name": "South Africa" },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Divisions",
+      "itemListElement": [
+%(services)s
+      ]
+    }
+  }
+  </script>
+""" % {
+    "brand": BRAND,
+    "domain": DOMAIN,
+    "email": EMAIL,
+    "services": ",\n".join(
+        '        { "@type": "Offer", "itemOffered": '
+        '{ "@type": "Service", "name": "%s", "description": "%s" } }'
+        % (d["name"], d["blurb"]) for d in DIVISIONS),
+}
+
+
 # ---------------------------------------------------------------------------
 # Chrome. Class names are the existing design system's, verbatim: the
 # stylesheet is frozen (BRAND.md §5) so the markup adapts to it, never the
 # other way round.
 # ---------------------------------------------------------------------------
-def head(p, title, desc, canon):
+def head(p, title, desc, canon, noindex=False):
+    robots_tag = ('  <meta name="robots" content="noindex, follow" />\n'
+                  if noindex else "")
+    # Structured data on the home page only: one page describing the entity,
+    # so search engines are not handed ten competing copies of it. Every field
+    # traces to the company profile; nothing about ratings, price, hours or
+    # accreditation is asserted, because none of it is documented.
+    jsonld = JSONLD if canon == "/" else ""
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -259,12 +321,21 @@ def head(p, title, desc, canon):
   <meta property="og:image" content="{DOMAIN}/assets/img/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="{BRAND}: security, protection, intelligence, control" />
+  <meta property="og:site_name" content="{BRAND}" />
+  <meta property="og:locale" content="en_ZA" />
   <meta name="twitter:card" content="summary_large_image" />
-
+  <meta name="twitter:title" content="{title}" />
+  <meta name="twitter:description" content="{desc}" />
+  <meta name="twitter:image" content="{DOMAIN}/assets/img/og-image.png" />
+  <meta name="twitter:image:alt" content="{BRAND}: security, protection, intelligence, control" />
+{robots_tag}
+  <link rel="icon" href="{p}favicon.ico" sizes="32x32" />
   <link rel="icon" type="image/png" sizes="32x32" href="{p}assets/img/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="{p}assets/img/favicon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="{p}assets/img/apple-touch-icon.png" />
   <link rel="manifest" href="{p}site.webmanifest" />
+{jsonld}
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -286,7 +357,7 @@ def brand(p):
     # logo's own lockup, so it stays crisp at any size and never duplicates
     # the wordmark that would otherwise sit inside the image.
     return (f'      <a href="{p}index.html" class="brand" aria-label="{BRAND} home page">\n'
-            f'        <img src="{p}assets/img/greyman-mark.png" alt="" class="brand__mark" width="42" height="42" />\n'
+            f'        <img src="{p}assets/img/greyman-mark.png" alt="" class="brand__mark" width="{MARK_W}" height="{MARK_H}" />\n'
             f'        <span class="brand__text">\n'
             f'          <strong>GREYMAN</strong>\n'
             f'          <em><span>Protection</span></em>\n'
@@ -503,7 +574,7 @@ def page_home():
 
     <section class="hero">
       <div class="hero__bg" aria-hidden="true"></div>
-      <img class="hero__crest" src="assets/img/greyman-lockup.png" alt="" aria-hidden="true" width="1000" height="1000" />
+      <img class="hero__crest" src="assets/img/greyman-lockup.png" alt="" aria-hidden="true" width="{LOCKUP_W}" height="{LOCKUP_H}" />
 
       <div class="wrap hero__inner">
         <div class="hero__badges reveal">
@@ -992,39 +1063,186 @@ def page_division(d, n):
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 404
+# ---------------------------------------------------------------------------
+def page_404():
+    """Served by the host for any unmatched route.
+
+    Lives at the repo root, is marked noindex and is deliberately absent from
+    the sitemap. It carries the full chrome so someone who lands on a dead link
+    still has the nav, and it routes them into the six divisions instead of
+    dead-ending. Dead links are likely for a while: this site changed brand and
+    its whole URL structure.
+    """
+    p = ""
+    links = "\n".join(
+        '          <a class="offer reveal" style="--d:.%ds" href="services/%s.html">\n'
+        '            <div class="offer__icon">%s</div>\n'
+        '            <div class="offer__copy">\n'
+        '              <h3 class="offer__title">%s</h3>\n'
+        '              <p>%s</p>\n'
+        '            </div>\n'
+        '          </a>' % (i, d["slug"], ico(d["icon"]), d["name"], d["blurb"])
+        for i, d in enumerate(DIVISIONS))
+
+    body = (
+        '  <main id="main">\n\n'
+        '    <section class="page-hero">\n'
+        '      <div class="wrap page-hero__inner">\n'
+        '        <span class="eyebrow">Error 404</span>\n'
+        '        <h1 class="page-hero__title reveal">This page <span class="grad">does not exist.</span></h1>\n'
+        '        <p class="page-hero__lead reveal" style="--d:.08s">\n'
+        '          The link may be out of date, or the page may have moved when we\n'
+        '          rebranded. Everything we do is listed below, or write to us and we\n'
+        '          will point you at the right person.\n'
+        '        </p>\n'
+        '        <div class="hero__actions reveal" style="--d:.16s">\n'
+        f'          <a class="btn btn--blue btn--lg" href="index.html">Back to the home page {ARROW}</a>\n'
+        f'          <a class="btn btn--outline btn--lg" href="mailto:{EMAIL}">{ico("i-mail")} Email us</a>\n'
+        '        </div>\n'
+        '      </div>\n'
+        '    </section>\n\n'
+        '    <section class="section">\n'
+        '      <div class="wrap">\n'
+        '        <div class="section__head section__head--mid">\n'
+        '          <span class="eyebrow">Our divisions</span>\n'
+        '          <h2 class="section__title reveal">Where do you need <span class="grad">to get to?</span></h2>\n'
+        '        </div>\n'
+        '        <div class="offer-grid">\n'
+        f'{links}\n'
+        '        </div>\n'
+        '      </div>\n'
+        '    </section>\n\n'
+        f'{cta_band(p)}  </main>\n\n')
+
+    return head(p, f"Page not found | {BRAND}",
+                "That page does not exist. Find the division you need, or contact "
+                f"{BRAND} directly.", "/404", noindex=True) + header(p) + body + footer(p)
+
+
+# ---------------------------------------------------------------------------
+# Production files
+# ---------------------------------------------------------------------------
+def sitemap(entries):
+    """Built from the same list the pages are, so the two cannot drift apart."""
+    today = datetime.date.today().isoformat()
+    urls = "\n".join(
+        "  <url>\n"
+        f"    <loc>{DOMAIN}{canon}</loc>\n"
+        f"    <lastmod>{today}</lastmod>\n"
+        f"    <changefreq>{freq}</changefreq>\n"
+        f"    <priority>{prio}</priority>\n"
+        "  </url>"
+        for canon, freq, prio in entries)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{urls}\n"
+            "</urlset>\n")
+
+
+def robots():
+    return ("User-agent: *\n"
+            "Allow: /\n\n"
+            "# Generated pages only; the brand library and build tools are not content.\n"
+            "Disallow: /assets/brand/\n"
+            "Disallow: /tools/\n\n"
+            f"Sitemap: {DOMAIN}/sitemap.xml\n")
+
+
+def redirects():
+    """The six INTEGRI-era division pages retired in the rebrand.
+
+    They were live and may still be linked or indexed, so each goes to its
+    nearest surviving division rather than to a 404. 301 because the move is
+    permanent. Both the extensionless and .html forms are listed: the host
+    canonicalises to extensionless, but an old inbound link may carry either.
+    """
+    moved = [
+        ("/services/investigation", "/services/investigations"),
+        ("/services/forensic", "/services/investigations"),
+        ("/services/polygraph", "/services/investigations"),
+        ("/services/protection", "/services/close-protection"),
+        ("/services/security", "/services/guarding"),
+        ("/services/specialized", "/services/mining-security"),
+    ]
+    lines = ["# Retired INTEGRI-era division pages. See BRAND.md section 4.",
+             "# These URLs were live, so they redirect rather than 404."]
+    for old, new in moved:
+        lines.append(f"{old:32s} {new:32s} 301")
+        lines.append(f"{old + '.html':32s} {new:32s} 301")
+    return "\n".join(lines) + "\n"
+
+
+def headers():
+    """Cloudflare Pages / Workers Assets `_headers`.
+
+    The hashed-name trick is not in play here, so the long immutable cache is
+    scoped to images only; CSS and JS get a week, because they change with
+    content and a stale stylesheet is a broken page rather than a stale picture.
+    """
+    return (
+        "/*\n"
+        "  X-Content-Type-Options: nosniff\n"
+        "  X-Frame-Options: SAMEORIGIN\n"
+        "  Referrer-Policy: strict-origin-when-cross-origin\n"
+        "  Permissions-Policy: geolocation=(), microphone=(), camera=()\n"
+        "  Strict-Transport-Security: max-age=31536000; includeSubDomains\n"
+        "\n"
+        "/assets/img/*\n"
+        "  Cache-Control: public, max-age=31536000, immutable\n"
+        "\n"
+        "/assets/css/*\n"
+        "  Cache-Control: public, max-age=604800\n"
+        "\n"
+        "/assets/js/*\n"
+        "  Cache-Control: public, max-age=604800\n")
+
+
 def main():
     written = []
 
-    def w(relpath, html):
+    def w(relpath, body):
         full = os.path.join(ROOT, relpath)
-        os.makedirs(os.path.dirname(full), exist_ok=True)
+        if os.path.dirname(full):
+            os.makedirs(os.path.dirname(full), exist_ok=True)
         with open(full, "w", encoding="utf-8") as f:
-            f.write(html)
-        written.append((relpath, len(html)))
+            f.write(body)
+        written.append((relpath, len(body)))
 
-    w("index.html", page_home())
-    w("about.html", page_about())
-    w("contact.html", page_contact())
-    w("services/index.html", page_services_index())
+    # one list drives both the pages and the sitemap
+    pages = [
+        ("index.html", "/", page_home, "monthly", "1.0"),
+        ("about.html", "/about", page_about, "yearly", "0.7"),
+        ("contact.html", "/contact", page_contact, "yearly", "0.9"),
+        ("services/index.html", "/services/", page_services_index, "monthly", "0.9"),
+    ]
     for i, d in enumerate(DIVISIONS):
-        w(f'services/{d["slug"]}.html', page_division(d, i))
+        pages.append((f'services/{d["slug"]}.html', f'/services/{d["slug"]}',
+                      (lambda d=d, i=i: page_division(d, i)), "yearly", "0.8"))
 
-    # Retire the INTEGRI-era division pages.
+    for relpath, _canon, fn, _freq, _prio in pages:
+        w(relpath, fn())
+
+    w("404.html", page_404())          # noindex, and NOT in the sitemap
+    w("sitemap.xml", sitemap([(c, f, p) for _r, c, _fn, f, p in pages]))
+    w("robots.txt", robots())
+    w("_redirects", redirects())
+    w("_headers", headers())
+
     for old in ("investigation", "forensic", "polygraph", "security",
                 "protection", "specialized"):
         stale = os.path.join(ROOT, "services", f"{old}.html")
-        if os.path.exists(stale) and not any(
-                r == f"services/{old}.html" for r, _ in written):
+        if os.path.exists(stale):
             os.remove(stale)
             print(f"   removed stale page services/{old}.html")
 
-    print(f"Generated {len(written)} pages:")
+    print(f"Generated {len(written)} files:")
     for r, n in written:
-        print(f"   {r:38s} {n/1024:6.1f} KB")
+        print(f"   {r:34s} {n / 1024:7.1f} KB")
 
-    # em dashes are banned site-wide; catch them at the source
-    bad = [r for r, _ in written
-           if "—" in open(os.path.join(ROOT, r), encoding="utf-8").read()]
+    bad = [r for r, _ in written if r.endswith(".html")
+           and "—" in open(os.path.join(ROOT, r), encoding="utf-8").read()]
     if bad:
         raise SystemExit("em dash emitted in: " + ", ".join(bad))
 

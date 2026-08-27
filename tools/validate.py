@@ -144,8 +144,14 @@ for page in pages:
     ]:
         for m in re.finditer(pat, src_copy, re.IGNORECASE):
             ctx = src_copy[max(0, m.start() - 45): m.end() + 45].replace("\n", " ")
-            # the footer copyright year is legitimate
-            if "possible fabricated year" in msg and "data-year" in ctx:
+            # A year is only suspicious as an unsupported claim about the
+            # business. These are not that: the footer copyright, a statute
+            # citation ("...Act, 2013"), and the legal pages' review stamp.
+            if "possible fabricated year" in msg and (
+                    "data-year" in ctx
+                    or re.search(r"Act,\s*(19|20)\d{2}", ctx)
+                    or "legal__stamp" in ctx
+                    or "Last reviewed" in ctx):
                 continue
             warnings.append(f"{P}: {msg} -> …{ctx.strip()}…")
 
@@ -155,7 +161,11 @@ for page in pages:
         if digits and digits not in ("27711183257", "27671612570"):
             errors.append(f"{P}: unknown phone number -> {bad.strip()}")
     for mail in re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", src):
-        if mail != "ops@greymanprotection.co.za":
+        # The Information Regulator's published address, verified on
+        # inforegulator.org.za. Whitelisted by name rather than by loosening
+        # the check, which exists to catch a stale mailbox shipping to prod.
+        if mail not in ("ops@greymanprotection.co.za",
+                        "enquiries@inforegulator.org.za"):
             errors.append(f"{P}: unknown email address -> {mail}")
 
 # ---------- unreferenced assets ----------

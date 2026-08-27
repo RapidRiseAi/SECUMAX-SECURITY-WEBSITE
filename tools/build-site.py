@@ -48,7 +48,6 @@ def division_symbols():
 
 
 MARK_W, MARK_H = img_size("assets/img/greyman-mark.png")
-LOCKUP_W, LOCKUP_H = img_size("assets/img/greyman-lockup.png")
 
 # --- the one place the domain lives; the client is moving it later ----------
 DOMAIN = "https://www.integriforensicservices.com"
@@ -345,6 +344,7 @@ def head(p, title, desc, canon, noindex=False):
   <meta name="twitter:image:alt" content="{BRAND}: security, protection, intelligence, control" />
 {robots_tag}
   <link rel="icon" href="{p}favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/svg+xml" href="{p}assets/img/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="{p}assets/img/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="{p}assets/img/favicon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="{p}assets/img/apple-touch-icon.png" />
@@ -481,6 +481,15 @@ def footer(p):
             <a href="mailto:{EMAIL}">{EMAIL}</a>
           </div>
         </div>
+
+        <div class="footer__col">
+          <h3>Legal</h3>
+          <div class="footer__links">
+            <a href="{p}privacy.html">Privacy Policy</a>
+            <a href="{p}terms.html">Terms of Use</a>
+            <a href="{p}paia.html">Access to Information</a>
+          </div>
+        </div>
       </div>
 
       <div class="footer__bottom">
@@ -499,6 +508,14 @@ def footer(p):
       {ico("i-phone")} Contact
     </a>
   </div>
+
+  <!-- Not a cookie banner: this site sets no cookies and runs no analytics, so
+       there is nothing to consent to. It says so once, then stays dismissed. -->
+  <aside class="privacy-note" id="privacyNote" hidden aria-label="Privacy notice">
+    <p>This site sets <strong>no cookies</strong> and runs no analytics.
+       <a href="{p}privacy.html">How we handle personal information</a>.</p>
+    <button type="button" class="privacy-note__ok" id="privacyOk">Got it</button>
+  </aside>
 
   <button class="to-top" id="toTop" aria-label="Scroll back to top">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -588,7 +605,7 @@ def page_home():
 
     <section class="hero">
       <div class="hero__bg" aria-hidden="true"></div>
-      <img class="hero__crest" src="assets/img/greyman-lockup.png" alt="" aria-hidden="true" width="{LOCKUP_W}" height="{LOCKUP_H}" />
+      <img class="hero__crest" src="assets/img/greyman-mark.png" alt="" aria-hidden="true" width="{MARK_W}" height="{MARK_H}" />
 
       <div class="wrap hero__inner">
         <div class="hero__badges reveal">
@@ -654,6 +671,12 @@ def page_home():
             <p>Directors are personally involved in every mandate. Clients deal with
                decision-makers, not a call centre, and sensitive information stays inside a small,
                accountable team.</p>
+            <p>Real security is not someone standing nearby. It is knowing what to look for,
+               what could go wrong, how to reduce the risk and how to respond when the
+               situation changes.</p>
+            <div class="pullquote">
+              Protect people. Protect assets. Establish the facts. Reduce risk.
+            </div>
           </div>
 
           <aside class="detail__aside">
@@ -1213,6 +1236,246 @@ def headers():
         "  Cache-Control: public, max-age=604800\n")
 
 
+# ---------------------------------------------------------------------------
+# Legal pages
+# ---------------------------------------------------------------------------
+# Written against what this site ACTUALLY does, which is unusually little:
+#
+#   * it sets no cookies and runs no analytics
+#   * the contact form is a mailto: handoff, so the message is composed in the
+#     visitor's own mail client and this site never receives or stores it
+#   * it does load Google Fonts, which is a third-party request
+#
+# Saying otherwise would be as much a fabrication as an invented certification,
+# so the notice describes exactly that and nothing more. It is a plain-language
+# draft, not legal advice: the client should have it reviewed before relying on
+# it, and BRAND.md section 7 lists what they still owe.
+LAST_REVIEWED = "August 2026"
+REGULATOR = "enquiries@inforegulator.org.za"
+
+
+def legal_page(slug, title, desc, eyebrow, h1a, h1b, lead, blocks):
+    """One legal page. `blocks` is a list of (heading, [html paragraphs])."""
+    p = ""
+    body = []
+    for heading, paras in blocks:
+        body.append(f'        <h2 class="section__title section__title--sm">{heading}</h2>')
+        body.extend(f"        <p>{t}</p>" for t in paras)
+    return head(p, f"{title} | {BRAND}", desc, f"/{slug}") + header(p) + f'''  <main id="main">
+
+    <section class="page-hero page-hero--short">
+      <div class="wrap page-hero__inner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="sep" aria-hidden="true">&#9670;</span>
+          <span aria-current="page">{title}</span>
+        </nav>
+
+        <span class="eyebrow">{eyebrow}</span>
+        <h1 class="page-hero__title reveal">{h1a} <span class="grad">{h1b}</span></h1>
+        <p class="page-hero__lead reveal" style="--d:.08s">{lead}</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="legal prose reveal">
+{chr(10).join(body)}
+          <p class="legal__stamp">Last reviewed {LAST_REVIEWED}. This notice describes how
+             this website works. It is written in plain language and is not legal advice.</p>
+        </div>
+      </div>
+    </section>
+
+''' + footer(p)
+
+
+def page_privacy():
+    return legal_page(
+        "privacy", "Privacy Policy",
+        f"How {BRAND} handles personal information, and your rights under POPIA. "
+        "This website sets no cookies and runs no analytics.",
+        "Privacy", "Privacy and", "personal information.",
+        "This notice explains what happens to personal information when you use this "
+        "website or contact us, and what your rights are under the Protection of "
+        "Personal Information Act, 2013 (POPIA).",
+        [
+            ("Who is responsible", [
+                f"{BRAND} is the responsible party for personal information processed "
+                "through this website and through enquiries made to us.",
+                f"Address: {ADDRESS}. Email: "
+                f'<a href="mailto:{EMAIL}">{EMAIL}</a>.',
+                "Under POPIA the head of a private body is the Information Officer "
+                "until another person is formally designated and registered with the "
+                "Information Regulator. Our directors therefore act as Information "
+                f'Officer and can be reached at <a href="mailto:{EMAIL}">{EMAIL}</a>.',
+            ]),
+            ("What this website collects", [
+                "<strong>Nothing automatically, beyond ordinary server logs.</strong> "
+                "This site sets no cookies, uses no analytics, no advertising pixels "
+                "and no tracking of any kind. Nothing you do here is profiled.",
+                "Our hosting provider keeps standard server logs, which include IP "
+                "addresses and the pages requested. These are used to keep the site "
+                "available and secure, not to identify visitors.",
+                "The site loads its typefaces from Google Fonts. That request reaches "
+                "Google's servers and, like any web request, exposes your IP address "
+                "to them. We receive nothing from it.",
+                "A single item may be stored in your browser: if you dismiss the "
+                "privacy notice, that dismissal is remembered in your browser's local "
+                "storage so it does not reappear. It never leaves your device and we "
+                "cannot read it.",
+            ]),
+            ("The contact form", [
+                "<strong>The form on our contact page does not submit anything to this "
+                "website.</strong> It assembles what you typed into a message and opens "
+                "it in your own email application, for you to send. Until you press "
+                "send in your own mail client, nothing has been transmitted, and this "
+                "site never receives or stores what you typed.",
+                "Once you do email us, we hold what you sent: your name, your email "
+                "address, and whatever you chose to tell us. We use it to answer you "
+                "and to carry out any work you engage us for.",
+            ]),
+            ("Information we hold about clients", [
+                "Where you engage us, we hold what the mandate requires. That varies by "
+                "service and can include the information you give us and the material "
+                "produced during the work.",
+                "Our work is confidential by nature. Information is compartmentalised, "
+                "teams are briefed on a need-to-know basis, and files stay inside a "
+                "small, accountable team.",
+                "We do not sell personal information, and we do not share it for "
+                "marketing.",
+            ]),
+            ("Why we may share information", [
+                "We share personal information only where it is necessary to do the "
+                "work you have engaged us for, where you have asked us to, or where the "
+                "law requires it. That last case includes a lawful request from a court "
+                "or a competent authority.",
+            ]),
+            ("How long we keep it", [
+                "Enquiries that do not become work are kept only as long as they are "
+                "useful to answer, then deleted. Records relating to work we have done "
+                "are kept for as long as we may be required to account for that work, "
+                "and then deleted.",
+            ]),
+            ("Your rights under POPIA", [
+                "You may ask what personal information we hold about you and ask for a "
+                "copy of it. You may ask us to correct it, or to delete information we "
+                "no longer have grounds to keep. You may object to processing in the "
+                "circumstances POPIA allows.",
+                f'To exercise any of these, write to <a href="mailto:{EMAIL}">{EMAIL}</a>. '
+                "We may need to confirm who you are before we act, precisely because "
+                "acting on an unverified request would itself be a breach.",
+                "If you are not satisfied with how we have handled your information you "
+                "may complain to the Information Regulator of South Africa: "
+                f'<a href="mailto:{REGULATOR}">{REGULATOR}</a>, '
+                '<a href="https://inforegulator.org.za" rel="noopener noreferrer" '
+                'target="_blank">inforegulator.org.za</a>.',
+            ]),
+            ("Security", [
+                "We take reasonable technical and organisational steps to protect "
+                "personal information. This site is served over HTTPS.",
+                "No system is perfectly secure, and we will not claim otherwise. If a "
+                "breach affects your personal information we will notify you and the "
+                "Information Regulator as POPIA requires.",
+            ]),
+            ("Changes", [
+                "If this notice changes materially we will update the review date at "
+                "the foot of this page.",
+            ]),
+        ])
+
+
+def page_terms():
+    return legal_page(
+        "terms", "Terms of Use",
+        f"The terms on which you may use the {BRAND} website.",
+        "Terms", "Terms of", "use.",
+        "These terms apply to your use of this website. They do not govern any security "
+        "work we carry out for you: that is covered by the separate written agreement "
+        "for the mandate.",
+        [
+            ("The website is information, not an offer", [
+                "The pages here describe the services we offer. Nothing on this website "
+                "is an offer capable of acceptance, a quotation, or a commitment that we "
+                "will take on a particular mandate.",
+                "Whether we can act, and on what terms, is agreed in writing for each "
+                "engagement after we understand the requirement.",
+            ]),
+            ("No advice", [
+                "Nothing on this website is security, legal or risk advice for your "
+                "specific circumstances. Security decisions depend on facts we do not "
+                "have until we assess them with you. Do not act on general information "
+                "here in place of an assessment.",
+            ]),
+            ("Accuracy", [
+                "We take care that these pages are accurate and keep them up to date. "
+                "Descriptions of our services are general, and the detail of what we do "
+                "on any mandate is set by that mandate.",
+            ]),
+            ("Your use of the site", [
+                "You may read, print and share these pages. You may not attempt to "
+                "interfere with the site, gain unauthorised access to it or to any system "
+                "connected to it, or use it to send unlawful or abusive material.",
+            ]),
+            ("Our material", [
+                f"The text, layout, logo and artwork on this site belong to {BRAND} or "
+                "are used with permission. Do not reproduce the branding or present it "
+                "as your own.",
+            ]),
+            ("Links out", [
+                "Where we link to another site, we do not control it and are not "
+                "responsible for its content.",
+            ]),
+            ("Governing law", [
+                "These terms are governed by the law of the Republic of South Africa.",
+            ]),
+        ])
+
+
+def page_paia():
+    return legal_page(
+        "paia", "Access to Information",
+        f"How to request access to records held by {BRAND} under PAIA.",
+        "PAIA", "Access to", "information.",
+        "The Promotion of Access to Information Act, 2000 (PAIA) gives you a route to "
+        "request records held by a private body. This page explains how to make such a "
+        "request to us.",
+        [
+            ("How to make a request", [
+                "Write to our Information Officer at "
+                f'<a href="mailto:{EMAIL}">{EMAIL}</a>, or to {ADDRESS}.',
+                "Tell us which record you want, in enough detail that we can identify "
+                "it; how you would like to receive it; your contact details; and, where "
+                "the request is to exercise or protect a right, which right and how the "
+                "record is required for it.",
+            ]),
+            ("What happens next", [
+                "We will respond within the period PAIA allows, and tell you whether we "
+                "can grant the request. Where a fee is payable under the Act we will "
+                "tell you what it is before we proceed.",
+                "PAIA permits and in some cases requires a request to be refused, for "
+                "example where a record contains someone else's personal information or "
+                "would prejudice a third party. Where we refuse, we will tell you the "
+                "grounds and how to appeal.",
+            ]),
+            ("Confidentiality is not a blanket answer", [
+                "Our work is confidential, but confidentiality is not by itself a reason "
+                "to refuse a PAIA request. Each request is considered against the "
+                "grounds the Act sets out.",
+            ]),
+            ("Our PAIA manual", [
+                "Our manual under section 51 of the Act is available on request from "
+                f'<a href="mailto:{EMAIL}">{EMAIL}</a>.',
+            ]),
+            ("The Information Regulator", [
+                "PAIA is overseen by the Information Regulator of South Africa: "
+                f'<a href="mailto:{REGULATOR}">{REGULATOR}</a>, '
+                '<a href="https://inforegulator.org.za" rel="noopener noreferrer" '
+                'target="_blank">inforegulator.org.za</a>.',
+            ]),
+        ])
+
+
 def main():
     written = []
 
@@ -1234,6 +1497,11 @@ def main():
     for i, d in enumerate(DIVISIONS):
         pages.append((f'services/{d["slug"]}.html', f'/services/{d["slug"]}',
                       (lambda d=d, i=i: page_division(d, i)), "yearly", "0.8"))
+    pages += [
+        ("privacy.html", "/privacy", page_privacy, "yearly", "0.3"),
+        ("terms.html", "/terms", page_terms, "yearly", "0.3"),
+        ("paia.html", "/paia", page_paia, "yearly", "0.3"),
+    ]
 
     for relpath, _canon, fn, _freq, _prio in pages:
         w(relpath, fn())

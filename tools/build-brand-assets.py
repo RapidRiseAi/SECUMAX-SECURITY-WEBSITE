@@ -76,8 +76,13 @@ def trim(im, thresh=8):
 mark = trim(brand("mark-for-dark.png"))
 mark.save(out("greyman-mark.png"), optimize=True)
 
+# The lockup is brand artwork, not a web asset: the site sets the name in type
+# and uses the figure alone for the watermark, so nothing on a page links this.
 lockup = trim(brand("lockup-for-dark.png"))
-lockup.save(out("greyman-lockup.png"), optimize=True)
+lockup.save(os.path.join(BRAND_DIR, "greyman-lockup.png"), optimize=True)
+_stale_lockup = out("greyman-lockup.png")
+if os.path.exists(_stale_lockup):
+    os.remove(_stale_lockup)
 
 # ---- 2. favicons, from the solid-black mark so they read on any tab -----
 solid = brand("mark-on-black.png").convert("RGB")
@@ -106,6 +111,55 @@ for size, name in [(32, "favicon-32.png"), (192, "favicon-192.png"),
 fav.resize((64, 64), Image.LANCZOS).save(
     os.path.join(ROOT, "favicon.ico"), format="ICO",
     sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
+
+# ---- 2b. theme-aware SVG favicon ---------------------------------------
+# Built from the TRANSPARENT mark, with the ink colour switched by an embedded
+# prefers-color-scheme rule, so the figure is dark on a light tab strip and
+# light on a dark one. The blue sword is left alone: it reads on both.
+#
+# The PNG and ICO stay as fallbacks. Chrome and Firefox honour the media query
+# inside an SVG favicon; anything that does not simply takes the PNG.
+def svg_favicon():
+    import potrace
+
+    src = trim(brand("mark-for-dark.png"))
+    side = max(src.size)
+    sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    sq.alpha_composite(src, ((side - src.width) // 2, (side - src.height) // 2))
+    sq = sq.resize((240, 240), Image.LANCZOS)
+
+    a = np.array(sq).astype(int)
+    r, g, b, al = a[:, :, 0], a[:, :, 1], a[:, :, 2], a[:, :, 3]
+    solid = al > 128
+    blue = solid & (b - np.maximum(r, g) > 40)
+    ink = solid & ~blue
+
+    def trace(mask):
+        # bool array, and the complement: see trace-division-icons.py for why
+        pth = potrace.Bitmap(np.ascontiguousarray(~mask, dtype=bool)).trace(
+            turdsize=8, alphamax=1.0, opticurve=True, opttolerance=0.8)
+        sc = 100 / 240
+        f = lambda q: f"{q.x * sc:.1f} {q.y * sc:.1f}"          # noqa: E731
+        out = []
+        for c in pth:
+            out.append("M" + f(c.start_point))
+            for seg in c:
+                out.append("L" + f(seg.c) + "L" + f(seg.end_point) if seg.is_corner
+                           else "C" + f(seg.c1) + " " + f(seg.c2) + " " + f(seg.end_point))
+            out.append("Z")
+        return "".join(out)
+
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+           '<style>.ink{fill:#0B0B0D}'
+           '@media (prefers-color-scheme:dark){.ink{fill:#FFFFFF}}</style>'
+           f'<path class="ink" d="{trace(ink)}"/>'
+           f'<path fill="{BLUE}" d="{trace(blue)}"/>'
+           '</svg>')
+    with open(out("favicon.svg"), "w", encoding="utf-8") as f:
+        f.write(svg)
+
+
+svg_favicon()
 
 # ---- 3. Open Graph card ------------------------------------------------
 # Fonts are embedded as data URIs. A <link> to Google Fonts races the

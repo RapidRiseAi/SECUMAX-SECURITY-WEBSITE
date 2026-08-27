@@ -161,6 +161,35 @@ at the sizes these are actually used (96px and below).
 
 ---
 
+## 3d. Legal pages
+
+`privacy.html`, `terms.html` and `paia.html`, plus a dismissible privacy notice
+in the footer chrome.
+
+They are written against **what this site actually does**, which is unusually
+little: it sets no cookies, runs no analytics, and its contact form is a
+`mailto:` handoff, so the message is composed in the visitor's own mail client
+and this site never receives or stores it. It does load Google Fonts, which is a
+third-party request, and that is disclosed.
+
+**The notice is not a cookie banner.** With no cookies there is nothing to
+consent to, and a consent gate would be theatre. It states the position once and
+remembers the dismissal in `localStorage`, which is itself disclosed in the
+policy.
+
+Under POPIA the head of a private body is the Information Officer until another
+person is formally designated and registered with the Information Regulator, so
+the policy names the directors in that role and routes to the ops mailbox. That
+is accurate by default. **The client still needs to register an Information
+Officer with the Regulator**, and to have these pages reviewed by a lawyer:
+they are a plain-language draft, not legal advice.
+
+The Regulator's address `enquiries@inforegulator.org.za` was taken off
+inforegulator.org.za rather than from memory, and is whitelisted by name in the
+validator's email check.
+
+---
+
 ## 4. Services: six divisions
 
 Taken from the company profile. `tools/build-site.py` `DIVISIONS` is the machine
@@ -275,4 +304,5 @@ should stay narrower than the client's capability, not wider.
 5. The final domain.
 6. Whether `ops@greymanprotection.co.za` is live and monitored: the contact form
    hands off to it via `mailto:`, so an unmonitored mailbox loses every enquiry.
-7. An information officer's name, if a privacy notice is added later.
+7. Registration of an Information Officer with the Information Regulator, and a
+   lawyer's review of the three legal pages before relying on them.

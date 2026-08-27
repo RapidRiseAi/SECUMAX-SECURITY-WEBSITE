@@ -183,6 +183,28 @@
     });
   }
 
+  /* ---------- Privacy notice ----------
+     Deliberately NOT a cookie banner: the site sets no cookies, so there is
+     nothing to consent to and a consent gate would be theatre. It states that
+     once. The dismissal is kept in localStorage, which never leaves the device
+     and is itself disclosed in the privacy policy. Wrapped because Safari in
+     private mode throws on localStorage rather than returning null. */
+  var note = $('#privacyNote');
+  var noteOk = $('#privacyOk');
+  function noteSeen(v) {
+    try {
+      if (v === undefined) return localStorage.getItem('gm-privacy-note') === '1';
+      localStorage.setItem('gm-privacy-note', '1');
+    } catch (e) { return v === undefined ? true : undefined; }
+  }
+  if (note && noteOk && !noteSeen()) {
+    note.hidden = false;
+    noteOk.addEventListener('click', function () {
+      note.hidden = true;
+      noteSeen(true);
+    });
+  }
+
   /* ---------- Current year in the footer ---------- */
   $$('[data-year]').forEach(function (el) { el.textContent = new Date().getFullYear(); });
 })();

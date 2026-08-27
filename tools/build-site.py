@@ -605,9 +605,9 @@ def page_home():
 
     <section class="hero">
       <div class="hero__bg" aria-hidden="true"></div>
-      <img class="hero__crest" src="assets/img/greyman-mark.png" alt="" aria-hidden="true" width="{MARK_W}" height="{MARK_H}" />
 
       <div class="wrap hero__inner">
+        <div class="hero__copy">
         <div class="hero__badges reveal">
 {badges()}
         </div>
@@ -635,6 +635,11 @@ def page_home():
         <p class="hero__mail reveal" style="--d:.80s">
           Every enquiry is treated in confidence, <a href="mailto:{EMAIL}">{EMAIL}</a>
         </p>
+        </div>
+
+        <div class="hero__figure reveal" aria-hidden="true" style="--d:.45s">
+          <img src="assets/img/greyman-mark.png" alt="" width="{MARK_W}" height="{MARK_H}" />
+        </div>
       </div>
     </section>
 

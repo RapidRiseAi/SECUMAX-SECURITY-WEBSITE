@@ -355,12 +355,34 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
   mask-image:radial-gradient(ellipse 85% 65% at 50% 40%,#000 35%,transparent 78%);
   -webkit-mask-image:radial-gradient(ellipse 85% 65% at 50% 40%,#000 35%,transparent 78%);
 }
-.hero__crest{
-  position:absolute;right:-4%;top:50%;transform:translateY(-50%);
-  width:min(560px,52vw);height:auto;opacity:.09;z-index:0;pointer-events:none;
-  filter:grayscale(1) contrast(1.2);
+/* Two columns: copy left, the mark as a contained element right.
+   It used to be absolutely positioned at right:-4%, which bled it off the edge
+   and clipped it top and bottom on a short viewport, leaving the middle of the
+   hero empty. As a grid cell it stays whole, and the column that was dead space
+   now carries the brand. */
+.hero__inner{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(190px,19vw,300px);
+  gap:clamp(24px,3vw,52px);
+  align-items:center;
 }
-.hero__inner{position:relative;z-index:2;max-width:900px}
+.hero__copy{max-width:720px;min-width:0}
+.hero__figure{position:relative;justify-self:end;width:100%}
+.hero__figure img{
+  width:100%;height:auto;
+  /* never taller than the hero can hold; contain keeps the ratio while it clamps */
+  max-height:min(62svh,600px);object-fit:contain;margin-inline:auto;
+  filter:drop-shadow(0 26px 54px rgba(0,0,0,.65));
+}
+/* a soft blue bloom so the figure sits in the scene rather than on top of it */
+.hero__figure::before{
+  content:"";position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:150%;aspect-ratio:1;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,rgba(77,124,255,.20) 0%,rgba(77,124,255,.06) 45%,transparent 70%);
+  pointer-events:none;
+}
 
 .hero__badges{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px}
 .hero__badge{
@@ -373,7 +395,7 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
 .hero__badge .ico{width:15px;height:15px;color:var(--blue-lift)}
 
 .hero__title{
-  font-size:clamp(2.4rem,7vw,5rem);
+  font-size:clamp(2.3rem,5.6vw,4.4rem);
   letter-spacing:-.015em;text-transform:uppercase;margin-bottom:24px;
 }
 .hero__line{display:block;overflow:hidden}
@@ -829,7 +851,7 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
   .hamburger{display:block}
   .action-bar{display:grid}
   .contact__grid{grid-template-columns:1fr}
-  .hero__crest{display:none}
+  .hero__figure{display:none}
   .to-top{bottom:82px;right:16px}
 }
 
@@ -841,7 +863,8 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
   .trust__item:nth-child(n+3){border-top:1px solid var(--line-2)}
   .footer__grid{grid-template-columns:1fr;gap:32px}
   .footer__bottom{justify-content:center;text-align:center}
-  .hero{min-height:auto;padding:calc(var(--header-h) + 48px) 0 60px}
+  .hero{min-height:auto;padding:calc(var(--header-h) + 40px) 0 56px}
+  .hero__inner{grid-template-columns:1fr;gap:0}
   .hero__actions .btn{width:100%}
   .step{grid-template-columns:1fr;gap:14px}
   .brand__mark{width:36px;height:36px}

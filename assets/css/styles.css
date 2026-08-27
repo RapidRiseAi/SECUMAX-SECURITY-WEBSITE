@@ -851,7 +851,10 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
   .hamburger{display:block}
   .action-bar{display:grid}
   .contact__grid{grid-template-columns:1fr}
+  /* the figure and the column that holds it go together, or the grid keeps
+     reserving space for something that is not being drawn */
   .hero__figure{display:none}
+  .hero__inner{grid-template-columns:1fr;gap:0}
   .to-top{bottom:82px;right:16px}
 }
 
@@ -864,10 +867,9 @@ a.contact-item:hover{border-color:var(--line-blue);transform:translateX(4px)}
   .footer__grid{grid-template-columns:1fr;gap:32px}
   .footer__bottom{justify-content:center;text-align:center}
   .hero{min-height:auto;padding:calc(var(--header-h) + 40px) 0 56px}
-  .hero__inner{grid-template-columns:1fr;gap:0}
   .hero__actions .btn{width:100%}
   .step{grid-template-columns:1fr;gap:14px}
-  .brand__mark{width:36px;height:36px}
+  .brand__mark{height:36px;width:auto}
   .brand__text strong{font-size:1.14rem}
   .section__head{margin-bottom:34px}
 }

@@ -178,18 +178,34 @@ section[id],main[id]{scroll-margin-top:calc(var(--header-h) + 14px)}
 }
 .header__inner{display:flex;align-items:center;justify-content:space-between;gap:22px;width:100%}
 
+/* Brand lockup. The wordmark is set in type rather than shipped as an image,
+   and reproduces the logo's own treatment: GREYMAN, then PROTECTION centred
+   between two blue rules that fill out to the same width. The <img> beside it
+   is the figure alone, so the name is never duplicated. */
 .brand{display:flex;align-items:center;gap:11px;flex:none}
 .brand__mark{width:42px;height:42px;flex:none}
-.brand__text{display:flex;flex-direction:column;line-height:1}
+.brand__text{display:flex;flex-direction:column;line-height:1;align-items:stretch}
 .brand__text strong{
   font-family:'Chakra Petch',sans-serif;font-weight:700;
   font-size:1.32rem;letter-spacing:.10em;color:var(--ink);
+  /* letter-spacing hangs after the final N; pull it back so the rules below
+     line up with the glyphs rather than with the trailing space */
+  margin-right:-.10em;
 }
 .brand__text em{
+  display:flex;align-items:center;gap:8px;
   font-family:'Barlow Condensed',sans-serif;font-style:normal;
-  font-size:.60rem;letter-spacing:.19em;text-transform:uppercase;
-  color:var(--blue-lift);font-weight:700;margin-top:3px;
+  font-size:.55rem;text-transform:uppercase;
+  color:var(--ink);font-weight:700;margin-top:5px;
 }
+/* The rules take whatever width PROTECTION leaves, so the row always ends
+   flush with GREYMAN above it. Keep the word narrow enough that they stay
+   visible: at .30em it crowded them down to a few pixels. */
+.brand__text em::before,
+.brand__text em::after{
+  content:"";flex:1;min-width:12px;height:2px;background:var(--blue-lift);
+}
+.brand__text em span{letter-spacing:.22em;margin-right:-.22em}
 
 .nav-desktop{display:flex;align-items:center;gap:4px;margin-left:auto}
 .nav-desktop > a,.nav-drop__toggle{

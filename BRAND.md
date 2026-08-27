@@ -66,6 +66,50 @@ dark surfaces.
 Chakra Petch (display) · Barlow (UI) · Barlow Condensed (labels). Unchanged from
 the previous build; the rebrand did not change the type system.
 
+### The wordmark is set in type, not shipped as an image
+
+`.brand__text` reproduces the logo's own lockup in CSS: GREYMAN, then
+PROTECTION centred between two blue rules that flex out to exactly GREYMAN's
+width. The `<img>` beside it is therefore the **figure alone**, never the full
+lockup, so the name is never drawn twice.
+
+Two details that look like mistakes and are not: the negative `margin-right` on
+both `strong` and the inner `span` cancels the trailing letter-space, so the
+rules align to the glyphs instead of to empty space; and the rules carry a
+`min-width` so they cannot be crowded to nothing when the word is long.
+
+Any surface showing the name (the OG card included) uses this same treatment.
+
+---
+
+## 3b. Logo library
+
+`assets/brand/` holds twelve supplied variants, named CONTENT-for-BACKGROUND:
+
+| | `mark-` | `wordmark-` | `lockup-` |
+|---|---|---|---|
+| | the figure alone | GREYMAN / PROTECTION | both together |
+
+| Suffix | What it is | Put it on |
+|---|---|---|
+| `-for-dark` | transparent, light ink | a dark ground (**this site**) |
+| `-for-light` | transparent, dark ink | a light ground |
+| `-on-black` | baked onto solid black | anything |
+| `-on-white` | baked onto solid white | anything |
+
+**Choose by the background you are placing it on.** A `-for-light` variant on
+this site is invisible, and nothing about the filename in a diff makes that
+obvious. `tools/validate.py` fails the build if a page references one.
+
+The site ships exactly two: `greyman-mark.png` (the figure, for the header and
+the hero watermark) and `greyman-lockup.png`. The wordmark images are never
+shipped, because the name is set in type.
+
+The favicon is built from `mark-on-black`, not from a transparent variant: a
+browser tab strip can be light or dark, and light ink on transparent disappears
+on a light one. The crop was chosen by rendering candidates at 32px and looking
+at them.
+
 ---
 
 ## 4. Services: six divisions

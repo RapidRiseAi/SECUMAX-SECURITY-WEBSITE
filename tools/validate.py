@@ -130,6 +130,8 @@ for page in pages:
         # Greyman company profile asserts neither, and INTEGRI's registration
         # does not carry over to a different trading name. Publishing either
         # without the client's paperwork is a false claim, not a copy choice.
+        (r"-for-light\.png|-on-white\.png",
+         "light-ground logo variant on a dark site: it will be invisible"),
         (r"PSIRA", "PSIRA claim with no supporting certificate on file"),
         (r"\b\d{4}/\d{6}/\d{2}\b", "company registration number not verified for Greyman"),
         (r"24/7", "availability claim the company profile does not make"),

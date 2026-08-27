@@ -282,11 +282,14 @@ def head(p, title, desc, canon):
 
 
 def brand(p):
+    # The <img> is the figure alone. The name is set in type, mirroring the
+    # logo's own lockup, so it stays crisp at any size and never duplicates
+    # the wordmark that would otherwise sit inside the image.
     return (f'      <a href="{p}index.html" class="brand" aria-label="{BRAND} home page">\n'
             f'        <img src="{p}assets/img/greyman-mark.png" alt="" class="brand__mark" width="42" height="42" />\n'
             f'        <span class="brand__text">\n'
             f'          <strong>GREYMAN</strong>\n'
-            f'          <em>Protection</em>\n'
+            f'          <em><span>Protection</span></em>\n'
             f'        </span>\n'
             f'      </a>')
 
@@ -500,7 +503,7 @@ def page_home():
 
     <section class="hero">
       <div class="hero__bg" aria-hidden="true"></div>
-      <img class="hero__crest" src="assets/img/greyman-logo.png" alt="" aria-hidden="true" width="1215" height="1615" />
+      <img class="hero__crest" src="assets/img/greyman-lockup.png" alt="" aria-hidden="true" width="1000" height="1000" />
 
       <div class="wrap hero__inner">
         <div class="hero__badges reveal">

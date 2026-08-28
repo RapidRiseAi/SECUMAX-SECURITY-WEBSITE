@@ -983,11 +983,23 @@ def page_contact():
                           maxlength="5000" required></textarea>
                 <label for="message">How can we help?</label>
               </div>
-              <!-- Honeypot: no human sees or tabs to this. Anything that fills it
-                   in is automated, and the function drops the submission. -->
+              <!-- Honeypot: no human sees or tabs to this, so anything that fills
+                   it in is automated and the Worker drops the submission.
+
+                   It was `name="company"` with a Company label, which is the
+                   textbook match for Chrome's `organization` autofill field.
+                   Browsers duly filled the hidden trap for real visitors, who
+                   were then dropped as bots and told their enquiry had sent.
+                   `autocomplete="off"` does not save you: Chrome ignores it on
+                   address-profile fields, which is exactly what that was.
+
+                   So the name must belong to no autofill category at all, while
+                   still looking worth filling to a bot parsing the HTML. The
+                   password-manager opt-outs are belt and braces on top. -->
               <div class="hp" aria-hidden="true">
-                <label for="company">Company</label>
-                <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" />
+                <label for="enquiry-subject">Subject</label>
+                <input type="text" id="enquiry-subject" name="enquiry_subject" tabindex="-1"
+                       autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" />
               </div>
               <input type="hidden" name="ts" id="formTs" value="" />
               <button type="submit" class="btn btn--blue btn--block btn--lg" id="formSubmit">Send enquiry</button>

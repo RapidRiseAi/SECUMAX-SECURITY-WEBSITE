@@ -50,7 +50,7 @@ const GOOD = {
   phone: "+27 82 000 0000",
   service: "Special Investigations",
   message: "We need a vetting check on three candidates.",
-  company: "",
+  enquiry_subject: "",
   ts: String(Date.now() - 30000),
 };
 
@@ -116,7 +116,7 @@ await check("MAIL_TO overrides the recipient", async () => {
 
 await check("the honeypot is dropped silently, and nothing is sent", async () => {
   sent = null;
-  const res = await post({ ...GOOD, company: "Acme Ltd" });
+  const res = await post({ ...GOOD, enquiry_subject: "Acme Ltd" });
   const body = await res.json();
   eq(res.status, 200, "status");           // the bot is told it worked
   eq(body.ok, true, "ok flag");
@@ -140,6 +140,17 @@ await check("a fast but human submission is NOT dropped", async () => {
                            ts: String(Date.now() - 2000) });
   eq(res.status, 200, "status");
   if (!sent) throw new Error("a 2s-after-load submission was dropped as a bot");
+});
+
+await check("a stale page posting the OLD honeypot name is not dropped", async () => {
+  // The field used to be `company`, which Chrome autofills as `organization`,
+  // so real visitors were being dropped as bots. A cached copy of the old page
+  // is still out there posting an autofilled `company`. It must be ignored, not
+  // treated as a bot signal.
+  sent = null;
+  const res = await post({ ...GOOD, email: "stale@example.com", company: "Acme Ltd" });
+  eq(res.status, 200, "status");
+  if (!sent) throw new Error("a stale page's autofilled `company` was treated as a bot");
 });
 
 await check("a submission with no timestamp still goes through (no-JS visitor)", async () => {

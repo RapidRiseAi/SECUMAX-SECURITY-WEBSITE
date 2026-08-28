@@ -209,8 +209,19 @@ async function handlePost({ request, env }) {
   // of a mystery.
 
   // ---- 1. honeypot. A hidden field no human can see or tab to, so anything
-  // that fills it in is automated. No false positives worth worrying about.
-  if (oneLine(data.company || "")) {
+  // that fills it in is automated.
+  //
+  // "No false positives worth worrying about" was wrong, and this is the second
+  // silent-loss bug in this endpoint's own abuse layer. The field was called
+  // `company`, which Chrome autofills as `organization`: real visitors with a
+  // saved address profile had the hidden trap filled for them and were dropped
+  // as bots, told the enquiry had sent. The field is renamed to something no
+  // autofill heuristic matches, and the page's script clears it before every
+  // submit as well, so a browser that fills it anyway costs nobody an enquiry.
+  //
+  // Deliberately NOT checking the old `company` name any more: a cached copy of
+  // the previous page would still be posting an autofilled one.
+  if (oneLine(data.enquiry_subject || "")) {
     console.log("dropped: honeypot filled");
     return reply(request, 200, true, "Thank you. Your enquiry has been sent.");
   }

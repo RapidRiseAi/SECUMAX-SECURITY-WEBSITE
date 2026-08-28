@@ -166,6 +166,14 @@
     }
 
     form.addEventListener('submit', function (e) {
+      // Clear the honeypot before anything reads the form. A browser that
+      // autofills the hidden field would otherwise get the visitor dropped as a
+      // bot and told their enquiry had sent, which is how real enquiries went
+      // missing. Anything that does not run this script keeps whatever it put
+      // in the field, so the trap still works on exactly what it is aimed at.
+      var hp = form.elements.namedItem('enquiry_subject');
+      if (hp) hp.value = '';
+
       // Read fields via form.elements. `form.name` happens to work (HTMLFormElement is
       // [LegacyOverrideBuiltIns], so the named-element getter beats the built-in `name`
       // property) but it reads like a bug, so go through elements explicitly.

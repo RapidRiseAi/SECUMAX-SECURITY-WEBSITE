@@ -314,7 +314,7 @@ if os.path.exists(contact_html):
                           f"function is at /api/contact")
         if 'method="post"' not in tag:
             errors.append("contact.html: the form is not method=post")
-        for needle, label in [('name="company"', "honeypot field"),
+        for needle, label in [('name="enquiry_subject"', "honeypot field"),
                               ('id="formTs"', "timestamp field"),
                               ('id="formNote"', "status line"),
                               ('id="formSubmit"', "submit button")]:

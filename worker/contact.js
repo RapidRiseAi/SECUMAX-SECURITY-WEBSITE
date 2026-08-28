@@ -138,7 +138,7 @@ function reply(request, status, ok, message, heading) {
 
 /** One handler for every method, dispatching on `request.method` itself. */
 export async function handleContact(context) {
-  const { request } = context;
+  const { request, env } = context;
   if (request.method === "POST") return handlePost(context);
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: { Allow: "POST, OPTIONS" } });
@@ -146,9 +146,20 @@ export async function handleContact(context) {
   // Anything else. Answering here rather than falling through keeps a stray GET
   // from returning the site's 404 page, which would look like the endpoint does
   // not exist at all.
+  //
+  // `config` answers one question that the dashboard cannot: what does the
+  // RUNNING Worker actually see? Cloudflare has two separate "Variables and
+  // secrets" sections, one under Builds that only the build process can read,
+  // and a saved value looks identical in both. `bindings` lists the NAMES of
+  // what is bound, never a value, so a key in the wrong section or a mistyped
+  // name is visible from outside without anyone reading a secret.
   return jsonResponse(405, {
     ok: false,
     message: "Post the contact form to this endpoint.",
+    config: {
+      mailConfigured: Boolean(env && env.RESEND_API_KEY),
+      bindings: env ? Object.keys(env).sort() : [],
+    },
   });
 }
 

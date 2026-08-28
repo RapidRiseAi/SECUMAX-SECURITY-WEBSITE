@@ -190,6 +190,31 @@ await check("GET is answered with 405, not the site 404", async () => {
   eq(res.status, 405, "status");
 });
 
+await check("GET reports whether the running Worker can see a key", async () => {
+  const withKey = await (await handleContact({
+    request: new Request("https://www.greymanprotection.co.za/api/contact"),
+    env: { RESEND_API_KEY: "re_stub_key_not_real", ASSETS: {} },
+  })).json();
+  eq(withKey.config.mailConfigured, true, "mailConfigured with a key");
+  eq(withKey.config.bindings.join(","), "ASSETS,RESEND_API_KEY", "binding names");
+
+  const without = await (await handleContact({
+    request: new Request("https://www.greymanprotection.co.za/api/contact"),
+    env: { ASSETS: {} },
+  })).json();
+  eq(without.config.mailConfigured, false, "mailConfigured with no key");
+});
+
+await check("the diagnostic never returns a secret's value", async () => {
+  const body = await (await handleContact({
+    request: new Request("https://www.greymanprotection.co.za/api/contact"),
+    env: { RESEND_API_KEY: "re_a_very_secret_value_here", ASSETS: {} },
+  })).text();
+  if (body.includes("re_a_very_secret_value_here")) {
+    throw new Error("the key's VALUE leaked into the diagnostic response");
+  }
+});
+
 await check("a JSON body is accepted as well as a form post", async () => {
   sent = null;
   const res = await handleContact({

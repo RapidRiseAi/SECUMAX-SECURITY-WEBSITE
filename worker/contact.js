@@ -27,11 +27,21 @@
 
 const TO_DEFAULT = "ops@greymanprotection.co.za";
 
-// The From address must sit on a domain verified in the Resend account, and it
-// should be the client's own domain so replies and SPF/DKIM line up with the
-// brand. If only rapidriseai.com is verified, set MAIL_FROM in the dashboard to
-// an address there instead of changing this file.
-const FROM_DEFAULT = "Greyman Protection website <noreply@greymanprotection.co.za>";
+// The From address must sit on a domain VERIFIED in the Resend account, or the
+// send is rejected outright. This account is shared with the Rapid Rise AI site
+// and rapidriseai.com is the verified domain, so that is what sends.
+//
+// It reads slightly oddly for a Greyman email to come from rapidriseai.com, and
+// that is a deliverability constraint rather than a choice: an unverified From
+// domain does not fail quietly, it fails completely. The display name carries
+// the context, and Reply-To is set to the enquirer below, so hitting reply in
+// the ops mailbox still answers the right person.
+//
+// To move it onto the client's own domain: verify greymanprotection.co.za in
+// Resend (Domains, then add the DNS records it gives you), then either change
+// this line or set MAIL_FROM in the Cloudflare runtime variables. Do not change
+// it before the domain is verified.
+const FROM_DEFAULT = "Greyman Protection website <team@rapidriseai.com>";
 
 const SITE = "https://www.greymanprotection.co.za";
 

@@ -89,6 +89,31 @@ await check("a good submission is relayed to Resend and reports success", async 
   has(sent.body.html, "Thandi Mokoena", "html body");
 });
 
+await check("the From sits on the domain verified in Resend", async () => {
+  sent = null;
+  await post({ ...GOOD, email: "from@example.com" });
+  // rapidriseai.com is the verified sending domain on the shared Resend
+  // account. A From on an unverified domain is rejected outright, so pin it:
+  // this is the assertion that catches someone "tidying" it onto the client's
+  // own domain before that domain is verified.
+  eq(sent.body.from, "Greyman Protection website <team@rapidriseai.com>", "from");
+});
+
+await check("MAIL_FROM overrides the default without a code change", async () => {
+  sent = null;
+  await post({ ...GOOD, email: "override@example.com" },
+    { env: { ...ENV, MAIL_FROM: "Greyman Protection <noreply@greymanprotection.co.za>" } });
+  eq(sent.body.from, "Greyman Protection <noreply@greymanprotection.co.za>", "from");
+  eq(sent.body.to[0], "ops@greymanprotection.co.za", "recipient is unaffected");
+});
+
+await check("MAIL_TO overrides the recipient", async () => {
+  sent = null;
+  await post({ ...GOOD, email: "toover@example.com" },
+    { env: { ...ENV, MAIL_TO: "someone-else@greymanprotection.co.za" } });
+  eq(sent.body.to[0], "someone-else@greymanprotection.co.za", "recipient");
+});
+
 await check("the honeypot is dropped silently, and nothing is sent", async () => {
   sent = null;
   const res = await post({ ...GOOD, company: "Acme Ltd" });

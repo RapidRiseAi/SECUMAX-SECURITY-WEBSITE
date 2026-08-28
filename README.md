@@ -151,12 +151,26 @@ curl -s -X POST https://www.greymanprotection.co.za/api/contact \
 `"not configured yet"` with a 503 means the Worker cannot see a key, whatever
 the dashboard shows.
 
-Two things must be true in the Resend account or the send is rejected:
+### Who the mail is from, and why it is not the client's own domain
 
-1. `greymanprotection.co.za` is a **verified sending domain** (Resend -> Domains,
-   then add the DNS records it gives you). Until it is, set `MAIL_FROM` to an
-   address on a domain that already is.
-2. The key has send permission.
+| | |
+|---|---|
+| To | `ops@greymanprotection.co.za` |
+| From | `Greyman Protection website <team@rapidriseai.com>` |
+| Reply-To | the enquirer's own name and address |
+
+The Resend account is shared with the Rapid Rise AI site, and **rapidriseai.com
+is the verified sending domain there**. A From address on an unverified domain
+is not a soft failure, it is a rejected send, so the From has to sit on the
+domain Resend has actually verified. Reply-To carries the enquirer, so hitting
+reply in the ops mailbox still answers the right person.
+
+To move it onto the client's own domain: verify `greymanprotection.co.za` in
+Resend (Domains, then add the DNS records it gives you), *then* set `MAIL_FROM`
+or change `FROM_DEFAULT`. Not before: a test pins the current value precisely so
+nobody tidies it onto an unverified domain and breaks every enquiry.
+
+The other requirement is that the key has send permission.
 
 If `RESEND_API_KEY` is absent the endpoint answers `503` and tells the visitor
 to email the ops address instead. It never claims to have sent something it did

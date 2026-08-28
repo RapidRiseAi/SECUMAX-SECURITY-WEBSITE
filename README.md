@@ -182,15 +182,22 @@ not send.
 node tools/test-contact-function.mjs   # handler + routing, with Resend stubbed
 ```
 
-Twenty cases: relay, honeypot, timing trap, rate limit, validation, header
-injection, HTML escaping, missing key, provider failure, no-JS HTML response,
-and the Worker routing in front of all of it. Nothing leaves the machine and no
-real key is needed.
+Twenty-three cases: relay, the pinned From address, MAIL_FROM/MAIL_TO
+overrides, honeypot, timing trap in both directions (a script is dropped, a fast
+human is not), rate limit, validation, header injection, HTML escaping, missing
+key, provider failure, no-JS HTML response, and the Worker routing in front of
+all of it. Nothing leaves the machine and no real key is needed.
 
 ### Abuse
 
-Built in: a honeypot field, a three-second timing trap, a per-isolate IP rate
-limit of five in ten minutes, and length caps on every field. The rate limit is
+Built in: a honeypot field, a short timing trap, a per-isolate IP rate limit of
+five in ten minutes, and length caps on every field. Both traps answer with a
+success the sender cannot tell from a real one, so a bot has nothing to tune
+against, which also means a false positive loses an enquiry in silence. Every
+drop is therefore logged: with observability on, "we stopped getting enquiries"
+shows up in the Workers logs rather than nowhere. The timing window is 1.2s
+deliberately, not 3s: the clock starts at page load, and a returning visitor
+whose browser autofills the form can genuinely submit inside three seconds. The rate limit is
 best effort, because it lives in the isolate's memory rather than in KV. If the
 form is ever actually abused, add a **WAF rate-limiting rule on `/api/contact`**
 in the Cloudflare dashboard: that runs at the edge, before the Worker is

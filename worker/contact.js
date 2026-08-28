@@ -157,19 +157,15 @@ export async function handleContact(context) {
   // from returning the site's 404 page, which would look like the endpoint does
   // not exist at all.
   //
-  // `config` answers one question that the dashboard cannot: what does the
-  // RUNNING Worker actually see? Cloudflare has two separate "Variables and
-  // secrets" sections, one under Builds that only the build process can read,
-  // and a saved value looks identical in both. `bindings` lists the NAMES of
-  // what is bound, never a value, so a key in the wrong section or a mistyped
-  // name is visible from outside without anyone reading a secret.
+  // This briefly also reported which bindings the running Worker could see,
+  // to settle whether a key was reaching runtime. It did its job and is gone:
+  // it is not the site's business to publish its own binding names. If the
+  // question comes up again, POST to the endpoint. A 503 saying "not
+  // configured yet" means the Worker cannot see a key, whatever the dashboard
+  // shows, and the drops above are logged rather than silent.
   return jsonResponse(405, {
     ok: false,
     message: "Post the contact form to this endpoint.",
-    config: {
-      mailConfigured: Boolean(env && env.RESEND_API_KEY),
-      bindings: env ? Object.keys(env).sort() : [],
-    },
   });
 }
 
@@ -205,16 +201,34 @@ async function handlePost({ request, env }) {
   const message = String(data.message == null ? "" : data.message)
     .trim().slice(0, LIMITS.message);
 
-  // ---- 1. honeypot. Silently accepted so the bot has nothing to tune against.
+  // Both traps below answer with a success the sender cannot distinguish from a
+  // real one, so a bot has nothing to tune against. That also means a false
+  // positive is an enquiry lost in total silence, which is the exact failure
+  // this endpoint was built to end. So log every drop: with observability on,
+  // "we stopped getting enquiries" becomes a line in the Workers logs instead
+  // of a mystery.
+
+  // ---- 1. honeypot. A hidden field no human can see or tab to, so anything
+  // that fills it in is automated. No false positives worth worrying about.
   if (oneLine(data.company || "")) {
+    console.log("dropped: honeypot filled");
     return reply(request, 200, true, "Thank you. Your enquiry has been sent.");
   }
 
   // ---- 2. time trap. `ts` is stamped by the page's script when the form is
-  // ready. A real person needs seconds to type; a script posts instantly. With
-  // JavaScript off there is no stamp at all, so a missing value must pass.
+  // ready; a script posts in milliseconds. With JavaScript off there is no
+  // stamp at all, so a missing value must pass.
+  //
+  // The window is deliberately short. It was 3s, which is long enough to catch
+  // a REAL person: the clock starts at page load, not at first keystroke, and a
+  // returning visitor whose browser autofills the whole form can submit inside
+  // three seconds without doing anything unusual. They would have been told the
+  // enquiry was sent and it would have gone nowhere. A scripted post is orders
+  // of magnitude faster than a human plus autofill, so a much smaller window
+  // gives up almost nothing and stops eating real enquiries.
   const ts = Number(data.ts);
-  if (Number.isFinite(ts) && ts > 0 && Date.now() - ts < 3000) {
+  if (Number.isFinite(ts) && ts > 0 && Date.now() - ts < 1200) {
+    console.log("dropped: submitted " + (Date.now() - ts) + "ms after the form loaded");
     return reply(request, 200, true, "Thank you. Your enquiry has been sent.");
   }
 
@@ -293,8 +307,8 @@ Country: ${esc(country)} &middot; Received: ${new Date().toISOString()}
   }
 
   if (!res.ok) {
-    // Log the provider's reason for the Pages tail, but never return it: it can
-    // carry configuration detail, and the visitor can do nothing with it.
+    // Log the provider's reason for the tail, but never return it: it can carry
+    // configuration detail, and the visitor can do nothing with it.
     let detail = "";
     try { detail = (await res.text()).slice(0, 500); } catch { /* ignore */ }
     console.error("resend failed", res.status, detail);
@@ -302,6 +316,16 @@ Country: ${esc(country)} &middot; Received: ${new Date().toISOString()}
       `We could not send that just now. Please email <a href="mailto:${to}">${to}</a> directly.`,
       "Not sent");
   }
+
+  // A 200 from Resend means ACCEPTED FOR DELIVERY, not delivered. The message
+  // can still bounce afterwards, and when it does nothing on this side hears
+  // about it: the visitor has already been told it was sent. Log the id Resend
+  // hands back, so a "we never got it" can be traced to one row in the Resend
+  // dashboard instead of guessed at. Observability is enabled on this Worker,
+  // so this lands in the Cloudflare logs.
+  let id = "";
+  try { id = ((await res.json()) || {}).id || ""; } catch { /* not fatal */ }
+  console.log("resend accepted", JSON.stringify({ id, to, from }));
 
   return reply(request, 200, true,
     "Thank you. Your enquiry has been sent and we will come back to you.");

@@ -127,7 +127,19 @@ await check("an instant submission is dropped as automated", async () => {
   sent = null;
   const res = await post({ ...GOOD, ts: String(Date.now()) });
   eq(res.status, 200, "status");
-  if (sent) throw new Error("a sub-3s submission reached Resend");
+  if (sent) throw new Error("a same-millisecond submission reached Resend");
+});
+
+await check("a fast but human submission is NOT dropped", async () => {
+  // Two seconds after page load. Used to be inside a 3s trap, so a returning
+  // visitor whose browser autofilled the form and clicked send was told the
+  // enquiry had gone and it went nowhere. That is the silent loss this whole
+  // endpoint exists to end, so it gets its own test.
+  sent = null;
+  const res = await post({ ...GOOD, email: "autofill@example.com",
+                           ts: String(Date.now() - 2000) });
+  eq(res.status, 200, "status");
+  if (!sent) throw new Error("a 2s-after-load submission was dropped as a bot");
 });
 
 await check("a submission with no timestamp still goes through (no-JS visitor)", async () => {
@@ -213,31 +225,6 @@ await check("GET is answered with 405, not the site 404", async () => {
     env: ENV,
   });
   eq(res.status, 405, "status");
-});
-
-await check("GET reports whether the running Worker can see a key", async () => {
-  const withKey = await (await handleContact({
-    request: new Request("https://www.greymanprotection.co.za/api/contact"),
-    env: { RESEND_API_KEY: "re_stub_key_not_real", ASSETS: {} },
-  })).json();
-  eq(withKey.config.mailConfigured, true, "mailConfigured with a key");
-  eq(withKey.config.bindings.join(","), "ASSETS,RESEND_API_KEY", "binding names");
-
-  const without = await (await handleContact({
-    request: new Request("https://www.greymanprotection.co.za/api/contact"),
-    env: { ASSETS: {} },
-  })).json();
-  eq(without.config.mailConfigured, false, "mailConfigured with no key");
-});
-
-await check("the diagnostic never returns a secret's value", async () => {
-  const body = await (await handleContact({
-    request: new Request("https://www.greymanprotection.co.za/api/contact"),
-    env: { RESEND_API_KEY: "re_a_very_secret_value_here", ASSETS: {} },
-  })).text();
-  if (body.includes("re_a_very_secret_value_here")) {
-    throw new Error("the key's VALUE leaked into the diagnostic response");
-  }
 });
 
 await check("a JSON body is accepted as well as a form post", async () => {

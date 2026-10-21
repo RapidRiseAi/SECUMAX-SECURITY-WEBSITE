@@ -14,7 +14,7 @@ disagree, this file wins and the code is wrong.
 | Positioning | Specialist security, protection and investigative services, South Africa |
 | Email | **ops@greymanprotection.co.za** |
 | Office | 466 Karel Trichardt Street, Mountainview, Pretoria |
-| Directors | Etienne, +27 71 118 3257 · Jacques, +27 67 161 2570 |
+| Directors | Etienne, +27 71 118 3257 · Jacques, +27 67 946 0812 |
 
 The logo wordmark reads "GREY MAN"; the company name is written **Greyman
 Protection** as one word, per the company profile. Both are correct in their own

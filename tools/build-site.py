@@ -76,7 +76,7 @@ EMAIL = "ops@greymanprotection.co.za"
 ADDRESS = "466 Karel Trichardt Street, Mountainview, Pretoria"
 DIRECTORS = [
     ("Etienne", "Director", "+27 71 118 3257", "27711183257"),
-    ("Jacques", "Director", "+27 67 161 2570", "27671612570"),
+    ("Jacques", "Director", "+27 67 946 0812", "27679460812"),
 ]
 
 # Build credit in the footer. Both verified to return 200 before being linked.

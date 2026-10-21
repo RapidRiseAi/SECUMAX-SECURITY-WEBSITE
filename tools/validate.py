@@ -157,7 +157,7 @@ for page in pages:
     # ---- 8. contact data exactness ----
     for bad in re.findall(r"\+27[\s\d&nbsp;]{8,}", src):
         digits = re.sub(r"\D", "", bad)
-        if digits and digits not in ("27711183257", "27671612570"):
+        if digits and digits not in ("27711183257", "27679460812"):
             errors.append(f"{P}: unknown phone number -> {bad.strip()}")
     for mail in re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", src):
         # The Information Regulator's published address, verified on

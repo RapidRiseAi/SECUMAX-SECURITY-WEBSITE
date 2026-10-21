@@ -37,7 +37,7 @@ VCARD = "\r\n".join([
     "ORG:Greyman Protection",
     "TITLE:Security, Protection, Intelligence, Control",
     "TEL;TYPE=WORK,VOICE:+27711183257",
-    "TEL;TYPE=WORK,VOICE:+27671612570",
+    "TEL;TYPE=WORK,VOICE:+27679460812",
     "EMAIL;TYPE=WORK:ops@greymanprotection.co.za",
     "ADR;TYPE=WORK:;;466 Karel Trichardt Street;Mountainview, Pretoria;;;South Africa",
     "URL:https://www.greymanprotection.co.za",

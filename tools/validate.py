@@ -438,6 +438,9 @@ else:
         errors.append(".assetsignore does not exclude .git/. The asset directory "
                       "is the repo root and wrangler does not skip dotfiles, so "
                       "the entire repository history would be served publicly.")
+    if not excluded(".github/workflows/deploy.yml"):
+        errors.append(".assetsignore does not exclude .github/, so the deploy "
+                      "workflow would be served publicly.")
 
     # Everything a page actually asks the browser to fetch, plus the files the
     # platform and crawlers fetch by convention.

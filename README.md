@@ -258,11 +258,19 @@ curl -i https://www.greymanprotection.co.za/api/contact   # expect 405
 `405` means the Worker is live. `404` means the platform is not running it and
 every enquiry is going nowhere.
 
-If a push to `main` never shows up under the Worker's **Deployments**, not even
-as a failed build, Cloudflare is no longer hearing about pushes. Settings ->
-Builds can look entirely correct while this happens. Disconnect the Git
-repository there and connect it again, then push to `main`; reconnecting does
-not build the commits it missed.
+### How a push goes live
+
+`.github/workflows/deploy.yml` runs the validator and then `wrangler deploy` on
+every push to `main`. It needs one repository secret, `CLOUDFLARE_API_TOKEN`,
+made from Cloudflare's "Edit Cloudflare Workers" token template. To redeploy
+without pushing: Actions -> Deploy -> Run workflow.
+
+Cloudflare's own Git integration used to do this. In October 2026 it stopped
+hearing about pushes: commits reached GitHub and never appeared under the
+Worker's **Deployments**, not even as failed builds, while Settings -> Builds
+looked entirely correct, and disconnecting and reconnecting the repository did
+not bring it back. Keep **Disable builds** switched on there, or a recovered
+integration and the workflow would both deploy every push.
 
 ## Before this goes public
 

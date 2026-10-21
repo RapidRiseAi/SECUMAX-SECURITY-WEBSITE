@@ -20,6 +20,9 @@
 # served: /.git/config, every past commit, anything ever committed and removed.
 .git/
 
+# The deploy workflow. Same reason: a dotfile directory wrangler would serve.
+.github/
+
 # Local wrangler state and installed packages, if either ever appears here.
 .wrangler/
 node_modules/

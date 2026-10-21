@@ -258,6 +258,12 @@ curl -i https://www.greymanprotection.co.za/api/contact   # expect 405
 `405` means the Worker is live. `404` means the platform is not running it and
 every enquiry is going nowhere.
 
+If a push to `main` never shows up under the Worker's **Deployments**, not even
+as a failed build, Cloudflare is no longer hearing about pushes. Settings ->
+Builds can look entirely correct while this happens. Disconnect the Git
+repository there and connect it again, then push to `main`; reconnecting does
+not build the commits it missed.
+
 ## Before this goes public
 
 See BRAND.md §6 and §7. In short: the site currently makes **no PSIRA claim and
